@@ -1,9 +1,7 @@
 \documentclass[11pt]{report}
-%\usepackage{geometry}
-%\geometry{letterpaper}
 \usepackage{graphicx}
 \usepackage{amssymb}
-%\usepackage{epstopdf}
+\usepackage{amsthm}
 \usepackage{fullpage}
 \DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
 
@@ -70,7 +68,9 @@
 \maketitle
 
 
-%\tableofcontents
+\tableofcontents
+
+\newpage
 
 \section[Intro]{Introduction and background}
 In his 2009 dissertation, Craig Gentry introduced a fully homomorphic encryption scheme based on the theory of ideal lattices...
@@ -161,7 +161,21 @@ An additional concern is that our message space may not realistically resemble $
 
 \
 
-Another approach to homomorphic encryption is to use the properties of arithmetic in polynomial rings. The ring structure essentially guarantees that if our encryption involves only arithmetic operations, it will be homomorphic.
+Another approach to homomorphic encryption is to use the properties of arithmetic in polynomial rings. The ring structure essentially guarantees that if our encryption involves only arithmetic operations, it will be homomorphic. Perhaps the most natural thing to try in this setting is via the following algorithm: choose a principal ideal $(f)\subset \Zx$ and encrypt an integer message $m$ by adding a random element $af\in (f)$, so $e(m) = m+af$. Then to decrypt, we simply reduce modulo the polynomial $f$. This process is homomorphic because ideals are closed under addition and multiplication: \[e(m_1)+e(m_2) = m_1+m_2+(a_1+a_2)f= e(m_1+m_2)\] and \[e(m_1)e(m_2) = m_1m_2+(m_2a_1+m_1a_2+a_1a_2)f = e(m_1m_2)\] Note that our definition of equality above is somewhat loose; since $e(m_1+m_2)$ encrypts by choosing a \emph{random} multiple of $f$, it may not be exactly $(a_1+a_2)f$ (and likewise for the case of multiplication). The notion of equality we adopt, then, is a notion of coset equality: $e(m_1)+e(m_2)$ is in the same coset of $I$ as $e(m_1+m_2)$, so they will decrypt identically, and the same is true for $e(m_1)e(m_2)$ and $e(m_1m_2)$.
+
+While this scheme illustrates the ideas we will use later, it is not very secure on its own. For example, suppose an eavesdropper, Eve, asks us to encrypt $m=0$ several times. The resulting ciphertexts would be a collection \[\left\{ a_1f_1, a_2f_2,\dots ,a_nf_n\right\}\] Now, if Eve takes the greatest common divisor of the elements in this collection, there is a very significant chance that the result will be $f$ itself. With $f$ in hand, Eve could then decrypt any message she pleased, and the scheme would be compromised.
+
+\
+
+This scheme was easily broken because it relied on a fairly easy problem: given a collection of polynomials in a principal ideal, find a generator for the ideal. This is a basic case of a more general problem:
+
+\
+
+\textbf{Ideal Membership Problem:} Given a ring $R$, an ideal $I\subset R$, and an element $f\in R$, determine whether $f\in I$.
+
+\
+
+By making this problem more complex
 
 \
 
@@ -209,5 +223,11 @@ and to decrypt, we first evaluate at $(x_1,z_2,\ldots,z_n)$ and then reduce modu
 \section{Implementation}
 
 \
+
+\section{Appendix A: Common Attacks}
+
+\
+
+\section{Appendix B: An intro to Gr\"obner bases}
 
 \end{document}  
