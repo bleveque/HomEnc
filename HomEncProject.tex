@@ -1,0 +1,209 @@
+\documentclass[11pt]{report}
+%\usepackage{geometry}
+%\geometry{letterpaper}
+\usepackage{graphicx}
+\usepackage{amssymb}
+%\usepackage{epstopdf}
+\usepackage{fullpage}
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\Zp}{\mathbb{Z}/p\mathbb{Z}}
+\newcommand{\Zn}{\mathbb{Z}/n\mathbb{Z}}
+\newcommand{\Zm}{\mathbb{Z}/m\mathbb{Z}}
+\newcommand{\bl}{\ & \ & \\}
+\newcommand{\eql}{\ & = &}
+\newcommand{\ba}{\\ \begin{array}{rcl}}
+\newcommand{\ea}{\end{array} \\}
+\newcommand{\claim}{\underline{Claim}: \ }
+\newcommand{\pf}{\underline{Proof of Claim}: \\ }
+\newcommand{\mat}{\left[\begin{array}{cc} a & b \\ c & d \end{array}\right]}
+\newcommand{\lra}{\longrightarrow}
+\newcommand{\mf}{\mathfrak}
+\newcommand{\inv}{^{-1}}
+\newcommand{\ML}{\mathcal{L}}
+\newcommand{\LM}{\mathcal{L}}
+\newcommand{\LMEF}{\mathcal{L}(E;F)}
+\newcommand{\Mnn}{M(n\times n)}
+\newcommand{\OnR}{O(n;\R)}
+\newcommand{\XM}{\mathfrak{X}(M)}
+\newcommand{\eps}{\epsilon}
+\newcommand{\CM}{C^{\infty}(M)}
+\newcommand{\ddt}{\frac{d}{dt}}
+\newcommand{\dds}{\frac{d}{ds}}
+\newcommand{\Zhat}{\hat{\mathbb{Z}}}
+\newcommand{\coker}{\text{coker}}
+\newcommand{\Hom}{\text{Hom}}
+\newcommand{\End}{\text{End}}
+\newcommand{\Aut}{\text{Aut}}
+\newcommand{\Tr}{\text{Tr}}
+\newcommand{\ra}{\rightarrow}
+\newcommand{\Ra}{\Rightarrow}
+\newcommand{\mfp}{\mathfrak{p}}
+\newcommand{\mfq}{\mathfrak{q}}
+\newcommand{\mfm}{\mathfrak{m}}
+\newcommand{\Ap}{A_{\mathfrak{p}}}
+\newcommand{\OK}{\mathcal{O}_k}
+\newcommand{\Zx}{\mathbb{Z}[x]}
+\newcommand{\Zxn}{\mathbb{Z}[x_1,\ldots,x_n]}
+\newcommand{\Zxy}{\mathbb{Z}[x,y]}
+\newcommand{\beq}{\begin{equation*}}
+\newcommand{\eeq}{\end{equation}}
+\setlength{\parindent}{0cm}        % \noindent everywhere!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setcounter{tocdepth}{3}
+
+\title{Homomorphic Encryption}
+\author{Ben LeVeque}
+\date{\today}         
+
+\begin{document}
+\maketitle
+
+
+%\tableofcontents
+
+\section[Intro]{Introduction and background}
+In his 2009 dissertation, Craig Gentry introduced a fully homomorphic encryption scheme based on the theory of ideal lattices...
+
+\section[Schemes]{The schemes under investigation}
+\subsection{Choice-dependent encryption}
+
+\
+
+One way to formulate a system is entirely over the integers. Instead of relying on the hardness of Grobner basis computation, our new system will rely on hardness of Eve correctly picking $N$ numbers in a row, where there are two options for each choice. With sufficiently large $N$, trying all $2^N$ combinations of choices will be computationally infeasible.
+
+\subsubsection{Scheme}
+
+The scheme goes as follows:
+
+\begin{itemize}
+\item Key generation
+\begin{enumerate}
+\item Pick $N\in \Z$ so that $2^N$ is sufficiently large
+\item Pick an integer $K$, which represents the number of ways we can mask a message
+\item Pick a prime $P$ -- this will be the message space size, so the message space is $\M := \Z/P\Z$
+\item Pick large primes $\{p_i\}_{i=1}^N$ such that $(K+1)P<\prod p_i$
+\item Pick primes $\{q_i\}_{i=1}^N$
+\item Return private key $(K,P,\{p_i\})$ and public key $(N,\{p_iq_i\})$
+\end{enumerate}
+
+\
+
+\item Encryption ($e$)
+\begin{enumerate}
+\item Pick a message $m\in \M$
+\item Pick random integers $\{a_i\}_{i=1}^N$
+\item Pick a random integer $k<K$
+\item Return $\{m+a_ip_i+kP \pmod{p_iq_i}\}_{i=1}^N$
+\end{enumerate}
+
+\
+
+\item Decryption ($d$)
+\begin{enumerate}
+\item For all $i=1,\ldots,N$, reduce the $i$th component of the encryption modulo $p_i$
+\item Run the Chinese Remainder Theorem on the resulting components, which gives $m+kP \pmod{\prod p_i}$
+\item Reduce the result modulo $P$ to retrieve $m$
+\end{enumerate}
+\end{itemize}
+
+\
+
+\subsubsection{Explanation}
+
+The hardness is in the fact that each pair $\{p_i,q_i\}$ is known from $p_iq_i$, but correctly deciding which of the two is $p_i$ requires a choice. Choosing the wrong value at one component will give an incorrect decryption, since reducing modulo $q_i$ will not eliminate the multiple of $p_i$ in the encryption. In the worst case for Eve, then, it will take her (naively, at least) $2^N$ tries to decrypt the message.
+
+The size of the primes $p_i$ and $q_i$ is up to the user; larger primes allow for a larger message space, but they also lead to larger ciphertexts. This is a trade-off that will be analyzed in more depth later on, but for now, we note that it is likely that creating a larger message space is more efficiently done by 
+
+The integer $K$ represents the number of ways we can mask a message with multiples of $P$. Note that if this masking were impossible, then it would be easy to determine the primes $p_i$ from encryptions of zero by taking the component-wise GCD of several such encryptions. By setting the message space to be $\Z/P\Z$, we ensure that even if a sum or product of messages is greater than $P$, reducing modulo $P$ will give the well-defined sum or product in the message space.
+
+\subsubsection{Correctness of encryption/decryption}
+
+\
+
+\claim If $m<M$, then $d(e(m)) = m$
+
+\pf Let $(N,\{p_i\},\{q_i\},K,P)$ be our secret key. Then \begin{equation} e(m) = \{m+a_ip_i+kP \pmod{p_iq_i}\}\end{equation} for some random $a_i$ and a random $k<K$. Then reducing each component modulo the corresponding $p_i$ gives \begin{equation} \{m+kP \pmod{p_i}\} \end{equation} Now, using the Chinese Remainder Theorem gives \begin{equation} m+kP \pmod{\prod p_i} \end{equation} Since we chose $m<P$ and $k<K$, and $P$ was defined such that $KP<\prod p_i$, we have that $m+kP <\prod p_i$, so \begin{equation} m+kP \pmod{\prod p_i} = m+kP\end{equation} Now, reducing modulo $P$ gives $m$, since $m\in \Z/P\Z$.
+
+\
+
+\subsubsection{Correctness of homomorphic operations}
+
+\
+
+Furthermore, the scheme is somewhat homomorphic (using component-wise addition and multiplication), since if $m_1, m_2 \in \M$, then \begin{equation} e(m_1) + e(m_2) = \{m_1+m_2 + (a_i+b_i)p_i + (k_1+k_2)P \pmod{p_iq_i}\} \end{equation}
+
+This is of the form of a regular encryption of the message $m_1+m_2$. The danger is that it is possible for $m_1+m_2+(k_1+k_2)P>\prod p_i$, in which case the Chinese Remainder Theorem would give an incorrect result. Similarly,
+\begin{equation} e(m_1)e(m_2) = \{m_1m_2+((m_1+k_1)b_i+(m_2+k_2)a_i+a_ib_i)p_i+(m_1k_2+m_2k_1+k_1k_2P)P \pmod{p_iq_i}\}\end{equation}
+Again, this is of the form of an encryption of the message $m_1m_2$, but we run into a similar as above. The danger is even greater now, since the numbers are growing multiplicatively instead of merely additively, now. Therefore, we will measure the homomorphicity in terms of the number of multiplications allowed by this system. As we see above, this depends on the size of the product of messages as well as the size of the product of messages and the values of $k$ that we pick.
+
+\
+
+\subsubsection{Analysis of homomorphicity}
+
+In terms of the dangers mentioned above, the worst case is $m\approx P$ and $k\approx K$. If all of our messages were on this order and were encrypted with random $k$ around $K$, then we would be allowed only $\log_{(K+1)P}\prod p_i$ multiplications, since each multiplication would roughly raise the message $m+kP \approx (K+1)P$ to a power. If we want a guarantee, then, that we can perform $M$ multiplications on encryptions, we should set $\{p_i\}$ such that $((K+1)P)^M < \prod p_i$. There are two ways to accomplish this: increase the size of each prime $p_i$, or increase $N$, the number of components in each encryption. This decision can be left to the user.
+
+An additional concern is that our message space may not realistically resemble $\Zp$, for example if the information we want to encode is a bunch of integer values, and we want to compute the product of these integers, we expect the result of performing the encrypted operation to be the true product, even if it exceeds $P$. As soon as the results of computations exceed $P$, the scheme fails to return the correct value to the user, so practically speaking, we want our messages to be much smaller than $P$, which is in turn much smaller than $\prod p_i$. Precisely, this means that if $E := \log_{(K+1)P}\prod p_i$, then $|\M|<\sqrt[E]{P}$ guarantees that products of messages will always decrypt properly, since $E$ is the number of allowed multiplications from above.
+
+\
+
+\subsection{Using multivariate polynomial rings}
+
+\
+
+\subsubsection{Scheme}
+
+\
+
+\subsubsection{Explanation}
+
+\
+
+\subsubsection{Correctness of encryption/decryption}
+
+\
+
+\subsubsection{Correctness of homomorphic operations}
+
+\
+
+\subsubsection{Practical analysis of homomorphicity}
+
+\subsubsection{Generalizing}
+
+... One benefit to this scheme is that it can be easily generalized to $n$ variables -- i.e. we can consider an analogous scheme over $\Zxn$. This is done by choosing $g$ such that $g(x_1,\ldots,x_n) = g_1(x_1)g_2(x_2)\cdots g_n(x_n)$ and $z_2,\ldots,z_n$ such that $z_i$ is a root of $g_i$. Then encryption proceeds as in the two-variable case:
+
+$\ba
+e(m) & = & m + af + bg
+\ea$
+
+and to decrypt, we first evaluate at $(x_1,z_2,\ldots,z_n)$ and then reduce modulo $f(x_1,z_2,\ldots,z_n) \in \Z[x_1]$.
+
+\
+
+
+\section{Applications}
+
+\subsection{Application to medical needs}
+
+\
+
+\subsection{Application to finance}
+
+\
+
+\section{Implementation}
+
+\
+
+\end{document}  
