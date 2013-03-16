@@ -76,6 +76,14 @@
 In his 2009 dissertation, Craig Gentry introduced a fully homomorphic encryption scheme based on the theory of ideal lattices...
 
 \section[Schemes]{The schemes under investigation}
+
+In this project, we formulated two schemes that show promise as either somewhat or fully homomorphic encryption schemes. The first,
+which is formulated entirely over the integers, relies on the hardness of choosing $N$ correct values (out of two choices each) in a row.
+The second, which is formulated over multivariate polynomial rings, relies on the hardness of the ideal membership problem (IMP) in this
+setting. Schemes such as this are sometimes referred to as ``Polly Cracker schemes,'' and have 
+
+\
+
 \subsection{Choice-dependent encryption}
 
 \
@@ -229,5 +237,9 @@ and to decrypt, we first evaluate at $(x_1,z_2,\ldots,z_n)$ and then reduce modu
 \
 
 \section{Appendix B: An intro to Gr\"obner bases}
+
+\
+
+\section{Appendix C: Failed Attempts}
 
 \end{document}  
