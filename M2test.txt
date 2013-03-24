@@ -1,0 +1,11 @@
+R=ZZ[x,y]
+I=ideal(value(get("/Users/bleveque/UTRA/HomEnc/Polys.txt")))
+t1=cpuTime();a=gb(I);t2=cpuTime();
+g="/Users/bleveque/UTRA/HomEnc/M2Gens.txt"
+g << gens(a) << endl << close
+T=(t2-t1)
+value(get("/Users/bleveque/UTRA/HomEnc/M2Params.txt"))
+f="/Users/bleveque/UTRA/HomEnc/M2Results.txt"
+f << get(f)
+f << totalDegree << "|" << sizeCoeffs << "|" <<  numPolysGiven << "|" << T << "|" << endl << close
+1+
