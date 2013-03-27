@@ -52,6 +52,7 @@
 \newcommand{\Zx}{\mathbb{Z}[x]}
 \newcommand{\Zxn}{\mathbb{Z}[x_1,\ldots,x_n]}
 \newcommand{\Zxy}{\mathbb{Z}[x,y]}
+\newcommand{\Zpxy}{\mathbb{Z}/p\mathbb{Z}[x,y]}
 \newcommand{\beq}{\begin{equation*}}
 \newcommand{\eeq}{\end{equation}}
 \setlength{\parindent}{0cm}        % \noindent everywhere!
@@ -77,8 +78,9 @@ In his 2009 dissertation, Craig Gentry introduced a fully homomorphic encryption
 
 \section[Schemes]{The schemes under investigation}
 
-In this project, we formulated two schemes that show promise as either somewhat or fully homomorphic encryption schemes. The first,
-which is formulated entirely over the integers, relies on the hardness of choosing $N$ correct values (out of two choices each) in a row.
+In this project, we formulate two schemes that show promise as either somewhat or fully homomorphic encryption schemes. The first,
+which is formulated entirely over the integers, relies on the hardness of making $N$ consecutive correct choices, where each choice
+is between two values.
 The second, which is formulated over multivariate polynomial rings, relies on the hardness of the ideal membership problem (IMP) in this
 setting. Schemes such as this are sometimes referred to as ``Polly Cracker schemes,'' and have 
 
@@ -88,7 +90,7 @@ setting. Schemes such as this are sometimes referred to as ``Polly Cracker schem
 
 \
 
-One way to formulate a system is entirely over the integers. Instead of relying on the hardness of Grobner basis computation, our new system will rely on hardness of Eve correctly picking $N$ numbers in a row, where there are two options for each choice. With sufficiently large $N$, trying all $2^N$ combinations of choices will be computationally infeasible.
+One way to formulate a system is entirely over the integers, where the hardness comes in requiring Eve to correctly pick $N$ numbers in a row, where there are two options for each choice. With sufficiently large $N$, trying all $2^N$ combinations of choices will be computationally infeasible.
 
 \subsubsection{Scheme}
 
@@ -112,7 +114,7 @@ The scheme goes as follows:
 \item Pick a message $m\in \M$
 \item Pick random integers $\{a_i\}_{i=1}^N$
 \item Pick a random integer $k<K$
-\item Return $\{m+a_ip_i+kP \pmod{p_iq_i}\}_{i=1}^N$
+\item Return $e(m):=\{m+a_ip_i+kP \pmod{p_iq_i}\}_{i=1}^N$
 \end{enumerate}
 
 \
@@ -129,11 +131,23 @@ The scheme goes as follows:
 
 \subsubsection{Explanation}
 
-The hardness is in the fact that each pair $\{p_i,q_i\}$ is known from $p_iq_i$, but correctly deciding which of the two is $p_i$ requires a choice. Choosing the wrong value at one component will give an incorrect decryption, since reducing modulo $q_i$ will not eliminate the multiple of $p_i$ in the encryption. In the worst case for Eve, then, it will take her (naively, at least) $2^N$ tries to decrypt the message.
+The hardness is in the fact that each pair $\{p_i,q_i\}$ is known from $p_iq_i$, but correctly deciding which of the two is $p_i$ requires a choice. Choosing the wrong value at one component will give an incorrect decryption, since reducing modulo $q_i$ will not eliminate the multiple of $p_i$ in the encryption. In the worst case for Eve, then, it will take her (naively, at least) $2^N$ tries to decrypt the message. It can be noted, too, that an incorrect choice at any point will result in a completely incorrect decryption, since reducing modulo $q_i$ at any point could give a drastically different reduction in that component, which will cause the Chinese Remainder Theorem to return an entirely incorrect value.
 
-The size of the primes $p_i$ and $q_i$ is up to the user; larger primes allow for a larger message space, but they also lead to larger ciphertexts. This is a trade-off that will be analyzed in more depth later on, but for now, we note that it is likely that creating a larger message space is more efficiently done by 
+The size of the primes $p_i$ and $q_i$ is up to the user; larger primes allow for a larger message space, but they also lead to larger ciphertexts. This is a trade-off between efficiency and security that will be analyzed in more depth later on, but for now, we note that it is also possible to create a larger message space by increasing the size of $N$. This will also affect the size of a cipher text, but it has the potential benefit of keeping the values in each component relatively smaller.
 
-The integer $K$ represents the number of ways we can mask a message with multiples of $P$. Note that if this masking were impossible, then it would be easy to determine the primes $p_i$ from encryptions of zero by taking the component-wise GCD of several such encryptions. By setting the message space to be $\Z/P\Z$, we ensure that even if a sum or product of messages is greater than $P$, reducing modulo $P$ will give the well-defined sum or product in the message space.
+The integer $K$ represents the number of ways we can mask a message with multiples of $P$. Note that if this masking were impossible, then it would be easy to determine the primes $p_i$ from encryptions of zero by taking the component-wise GCD of several such encryptions:
+
+\
+
+$\begin{array}{rcl}
+e(0) & = & (a_{1,1}p_1 \pmod{p_1q_1},\dots,a_{1,N}p_N \pmod{p_Nq_N}) \\
+\ & \vdots & \\
+e(0) & = & (a_{r,1}p_1 \pmod{p_1q_1},\dots,a_{r,N}p_N \pmod{p_Nq_N})
+\ea$
+
+\
+
+By setting the message space to be $\Z/P\Z$, we ensure that even if a sum or product of messages is greater than $P$, reducing modulo $P$ will give the well-defined sum or product in the message space.
 
 \subsubsection{Correctness of encryption/decryption}
 
@@ -169,9 +183,9 @@ An additional concern is that our message space may not realistically resemble $
 
 \
 
-Another approach to homomorphic encryption is to use the properties of arithmetic in polynomial rings. The ring structure essentially guarantees that if our encryption involves only arithmetic operations, it will be homomorphic. Perhaps the most natural thing to try in this setting is via the following algorithm: choose a principal ideal $(f)\subset \Zx$ and encrypt an integer message $m$ by adding a random element $af\in (f)$, so $e(m) = m+af$. Then to decrypt, we simply reduce modulo the polynomial $f$. This process is homomorphic because ideals are closed under addition and multiplication: \[e(m_1)+e(m_2) = m_1+m_2+(a_1+a_2)f= e(m_1+m_2)\] and \[e(m_1)e(m_2) = m_1m_2+(m_2a_1+m_1a_2+a_1a_2)f = e(m_1m_2)\] Note that our definition of equality above is somewhat loose; since $e(m_1+m_2)$ encrypts by choosing a \emph{random} multiple of $f$, it may not be exactly $(a_1+a_2)f$ (and likewise for the case of multiplication). The notion of equality we adopt, then, is a notion of coset equality: $e(m_1)+e(m_2)$ is in the same coset of $I$ as $e(m_1+m_2)$, so they will decrypt identically, and the same is true for $e(m_1)e(m_2)$ and $e(m_1m_2)$.
+Another approach to homomorphic encryption is to use the properties of arithmetic in polynomial rings. The ring structure essentially guarantees that if our encryption involves only arithmetic operations, it will be homomorphic. Perhaps the most natural thing to try in this setting is the following algorithm: choose a principal ideal $(f)\subset \Zx$ and encrypt an integer message $m$ by adding a random element $af\in (f)$, so $e(m) = m+af$. Then to decrypt, we simply reduce modulo the polynomial $f$. This process is homomorphic because ideals are closed under addition and multiplication: \[e(m_1)+e(m_2) = m_1+m_2+(a_1+a_2)f= e(m_1+m_2)\] and \[e(m_1)e(m_2) = m_1m_2+(m_2a_1+m_1a_2+a_1a_2)f = e(m_1m_2)\] Note that our definition of equality above is somewhat loose; since $e(m_1+m_2)$ encrypts by choosing a \emph{random} multiple of $f$, it may not be exactly $(a_1+a_2)f$ (and likewise for the case of multiplication). The notion of equality we adopt, then, is a notion of coset equality: $e(m_1)+e(m_2)$ is in the same coset of $I$ as $e(m_1+m_2)$, so they will decrypt identically, and the same is true for $e(m_1)e(m_2)$ and $e(m_1m_2)$.
 
-While this scheme illustrates the ideas we will use later, it is not very secure on its own. For example, suppose an eavesdropper, Eve, asks us to encrypt $m=0$ several times. The resulting ciphertexts would be a collection \[\left\{ a_1f_1, a_2f_2,\dots ,a_nf_n\right\}\] Now, if Eve takes the greatest common divisor of the elements in this collection, there is a very significant chance that the result will be $f$ itself. With $f$ in hand, Eve could then decrypt any message she pleased, and the scheme would be compromised.
+While this scheme illustrates the ideas we will use later, it is not very secure on its own. For example, suppose an eavesdropper, Eve, asks us to encrypt $m=0$ several times. The resulting ciphertexts would be a collection \[\left\{ a_1f_1, a_2f_2,\dots ,a_nf_n\right\}\] Now, if Eve takes the greatest common divisor of the elements in this collection, there is a very high chance that the result will be $f$ itself or a small multiple of $f$. With $f$ in hand, Eve could then decrypt any message she pleased, and the scheme would be compromised.
 
 \
 
@@ -179,11 +193,11 @@ This scheme was easily broken because it relied on a fairly easy problem: given 
 
 \
 
-\textbf{Ideal Membership Problem:} Given a ring $R$, an ideal $I\subset R$, and an element $f\in R$, determine whether $f\in I$.
+\textbf{Ideal Membership Problem:} Given a ring $R$, a set of elements $\{r_1,\dots,r_n\}\in R$, and an element $f\in R$, determine whether $f\in (r_1,\dots,r_n) \subset R$.
 
 \
 
-By making this problem more complex
+If the structure of $R$ is simple, then this problem is correspondingly easy, as we saw above in the case of our set of generators being multiples of a single polynomial $f\in \Zx$. However, if we look instead at multivariate polynomial rings such as $\Zxy$ or $\Zpxy$, the problem might not be so simple. We start by looking at the former
 
 \
 
