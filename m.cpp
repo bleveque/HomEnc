@@ -1,4 +1,5 @@
 #include "array.h"
+#include "llist.h"
 #include "funcs.h"
 
 using namespace std;
@@ -257,11 +258,55 @@ void user_encryption_test(void)
 	
 }
 
+void llisttest()
+{
+    llist L;
+    L.insert(bigint(3),5,6);
+    L.insert(bigint(2),4,10);
+    L.insert(bigint(2000),6,3);
+    L.insert(bigint(1),6,4);
+    L.insert(bigint(1),6,2);
+    L.insert(bigint(-2342),4,10);
+    L.insert(bigint(-2333),4,10);
+    L.insert(bigint(1),5,0);
+    L.printinfo("L");
+    llist M(L);
+    M.printinfo("M");
+    llist K=M+L;
+    K.printinfo("M+L");
+    llist R=K*L;
+    R.printinfo("K*L");
+    llist S;
+    S.insert(bigint(3),3,3);
+    S.insert(bigint(4),5,2);
+    S.printinfo("S");
+    llist T(S.eval_y(2));
+    T.printinfo("S(x,2) = T");
+    T.insert(0,20,20);
+    T.listprint("T");
+    T.trim_zeros();
+    T.listprint("T");
+    
+    llist A;
+    A.insert(1,0,0);
+    A.insert(1,1,0);
+    llist B;
+    B.insert(-1,0,0);
+    B.insert(1,1,0);
+    llist C(A*B);
+    C.listprint("A*B = ");
+    bigint aa(bigint(50)/bigint(16));
+    cout << "aa = " << aa << "\n";
+    llist D(C.quot_x(A));
+    D.printinfo("C/A");
+}
+
 int main(void)
 {
     srand(time(NULL));
     //functest();
     //ENCRYPTtest();
-    user_encryption_test();
+    //user_encryption_test();
+    llisttest();
 	return 0;
 }

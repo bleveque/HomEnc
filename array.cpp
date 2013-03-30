@@ -45,8 +45,8 @@ array::~array()
 array& array::operator=(array arr)
 {
     array temp(arr);
-    std::swap(len,arr.len);
-    std::swap(vals,arr.vals);
+    std::swap(len,temp.len);
+    std::swap(vals,temp.vals); //right??
 }
 
 array array::operator+(const array& arr1)

@@ -31,4 +31,16 @@ typedef mpz_class mpz;
 void printinfo(bigint b, string s);
 void split(string s, char c, string * ret);
 
+bigint GCD(bigint a, bigint b);
+bigint MOD(bigint a, bigint m);
+bigint NEXTPRIME(bigint after);
+bigint POW(bigint base, bigint exp);
+bigint POWMOD(bigint base, bigint exp, bigint m);
+bigint RAND();
+bigint RAND(bigint bound);
+bigint RAND(bigint bound, bigint lbound);
+bigint RANDODD();
+bigint RANDODD(bigint bound, bigint lbound);
+bigint XGCD(bigint a, bigint b, bigint &ainv, bigint &binv);
+
 #endif

@@ -2,6 +2,7 @@
 #define FUNCS_H
 
 #include "array.h"
+#include "llist.h"
 
 array APPLYCIRC_ENC(array circ, array enc1, array enc2);
 bigint APPLYCIRC_M(array circ, bigint m1, bigint m2);
@@ -16,27 +17,20 @@ bigint CRT(array rlist, array mlist, int check);
 bigint DECRYPT(array enc, array p, bigint P);
 array ENCRYPT(bigint m, array p, array q, bigint P);
 array ENCRYPT(bigint m, array p, array q, bigint P, int check, int print);
-bigint GCD(bigint a, bigint b);
 int IN(array arr, bigint nw);
 void KEYGEN(array &p, array &q, bigint &P);
 void KEYGEN(array &p, array &q, bigint &P, int N, int cleararrs);
-bigint MOD(bigint a, bigint m);
+void MULTICRYPT_KEYGEN(llist &f, llist &g, bigint z0);
+void MULTICRYPT_DECRYPT(llist c, llist f, llist g, bigint z0);
+void MULTICRYPT_ENCRYPT(bigint m, llist f, llist g);
 int NEWCOPRIME(array arr, bigint nw);
-bigint NEXTPRIME(bigint after);
 int NOTIN(array arr, bigint nw);
-bigint POW(bigint base, bigint exp);
-bigint POWMOD(bigint base, bigint exp, bigint m);
-bigint RAND();
-bigint RAND(bigint bound);
-bigint RAND(bigint bound, bigint lbound);
 array RANDARR(int n);
 array RANDARR(int n, bigint bd);
-bigint RANDODD();
-bigint RANDODD(bigint bound, bigint lbound);
 bigint STDDEVNUM(array arr);
 array STDDEVNUMARR(array * arrs, int N);
 bigint SUM(array arr);
-bigint XGCD(bigint a, bigint b, bigint &ainv, bigint &binv);
+//bigint XGCD(bigint a, bigint b, bigint &ainv, bigint &binv);
 
 /// function definitions
 

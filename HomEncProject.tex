@@ -55,7 +55,7 @@
 \newcommand{\Zpxy}{\mathbb{Z}/p\mathbb{Z}[x,y]}
 \newcommand{\beq}{\begin{equation*}}
 \newcommand{\eeq}{\end{equation}}
-\setlength{\parindent}{0cm}        % \noindent everywhere!
+%\setlength{\parindent}{0cm}        % \noindent everywhere!
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -74,7 +74,28 @@
 \newpage
 
 \section[Intro]{Introduction and background}
-In his 2009 dissertation, Craig Gentry introduced a fully homomorphic encryption scheme based on the theory of ideal lattices...
+
+Introduce idea of FHE. Define term (plaintext, ciphertext, message, message space, ciphertext space, cryptosystem, encryption, key generation, decryption $\N=\Z_{\geq 0}$).
+
+\
+
+Imagine you have a large collection of data points and want to compute the mean or standard deviation. You have have two options: you can either do this computation yourself at a potentially high computational cost, or you can delegate this work to another party and risk losing privacy.  The goal of fully homomorphic encryption is to minimize both potential costs by allowing secure delegation. In practice, this might mean being able to store data on The Cloud in an encrypted form such that a third party could still manipulate the data in a meaningful way. By meaningful, we mean that any combination of sums and products of encryptions decrypt to the corresponding sums and products of the original, unencrypted data. We call such a combination an \emph{arithmetic circuit}, or just a \emph{circuit}. If this were possible, data could be encrypted, operated upon, and decrypted in a completely well-defined manner. What we are looking for, then, is an encryption function that is a \emph{ring homomorphism} from the message space $\M$ to the ciphertext space $\mathcal{C}$. Recall that a ring homomorphism is a map $\sigma: \M \rightarrow \mathcal{C}$ such that for any $x,y\in \M$, \[\sigma(x)+\sigma(y) = \sigma(x+y)\] \[\sigma(x) \sigma(y) = \sigma(xy)\] If our encryption function $e$, then, is a ring homomorphism, we could add or multiply two encryptions and the result would be the encryption of the sum or product of the corresponding plaintexts. A cryptosystem employing such an encryption function is said to give \emph{fully homomorphic encryption} (FHE). If the encryption function in question is a homomorphism in most circumstances, but is not guaranteed to give well-defined decryption after the application of every circuit, the scheme is said to provide \emph{somewhat homomorphic encryption}. Such a scheme might arise if the decryption function requires its input to be of a certain size, which large circuits might exceed. For motivation, consider the following toy examples.
+
+\
+
+First, we will construct a somewhat homomorphic encryption scheme that provides very little security but illustrates the concepts presented above. Consider the message space $\M = \N$ and choose as a secret key some prime number $p$. We will encrypt a message $m\in \M$ by setting $e(m) = m+ap$ for some random integer $a$. Decryption is then performed by reducing modulo $p$. As long as the message $m$ is less than $p$, this scheme is perfectly well defined, since \[d(e(m)) = m+ap \pmod{p} = m\] However, if $m\geq p$, then $d(e(m))$ will no longer equal $m$, but will be the reduction of $m$ modulo $p$. One way to attempt to avoid this problem is to encrypt values only less than $p$. However, once we start considering circuits applied to encryptions, this idea shows its flaws; the sum of two encryptions of $p-1$, for example, would really be an encryption of $2p-2$, but it would encrypt to $-2 \equiv p-2 \pmod{p}$. Another solution is to recognize the limitations of the system and include as a part of the system's protocol a bound on the number of additions and multiplications that can be performed on encryptions before the result should be decrypted. 
+
+To make this scheme fully homomorphic, we could set $\M = \Zp$, since in this case, reducing modulo $p$ during decryption is consistent with the structure of the message space. However, it is perhaps unnatural to for messages to live in $\Zp$, since when we compute, for example, standard deviations, we don't want to reduce modulo $p$ at any point during the computation. In this case, it may be best to accept the limitations of the somewhat homomorphic scheme above and work within its framework.
+
+It should be mentioned, as well, that the scheme above is just a ``toy'' example because it is very insecure. Suppose an eavesdropper asked us to encrypt the message $m=0$ using this system. The result would be a multiple of $p$. Suppose we were asked to perform many such encryptions. We would end up with a collection of multiples of $p$. With this information, it would be very fast to compute the greatest common divisor of these values using the Euclidean Algorithm, and the result would likely be $p$ itself. Using $p$, the eavesdropper could then decrypt any message he pleased by simply reducing it modulo $p$. This type of attack---using encryptions of the message $0$ to reveal an essential feature of the structure of the scheme itself---will appear again, and is a necessary threat to consider when formulating encryption schemes. This attack and others is discussed in the appendix.
+
+\
+
+In his 2009 dissertation CITATION, Craig Gentry introduced a fully homomorphic encryption scheme based on the theory of ideal lattices...
+
+\
+
+This thesis will present two encryption schemes that explore their security and efficiency.
 
 \section[Schemes]{The schemes under investigation}
 
@@ -99,10 +120,10 @@ The scheme goes as follows:
 \begin{itemize}
 \item Key generation
 \begin{enumerate}
+\item Pick a prime $P$; the message space is $\M := \Zp$
+\item Pick an integer $K$; this is the number of ways we can mask a given message
 \item Pick $N\in \Z$ so that $2^N$ is sufficiently large
-\item Pick an integer $K$, which represents the number of ways we can mask a message
-\item Pick a prime $P$ -- this will be the message space size, so the message space is $\M := \Z/P\Z$
-\item Pick large primes $\{p_i\}_{i=1}^N$ such that $(K+1)P<\prod p_i$
+\item Pick primes $\{p_i\}_{i=1}^N$ such that $(K+1)P<\prod p_i$
 \item Pick primes $\{q_i\}_{i=1}^N$
 \item Return private key $(K,P,\{p_i\})$ and public key $(N,\{p_iq_i\})$
 \end{enumerate}
@@ -131,11 +152,15 @@ The scheme goes as follows:
 
 \subsubsection{Explanation}
 
+Before proving the correctness and analyzing the characteristics of this scheme, it is helpful to have some motivation for and explanation of the different components, beginning with the public and private keys. The prime $P$ is the size of our message space . If The value $N$ is a security parameter; changing its value affects the hardness of the underlying problem of choosing $N$ consecutive values correctly. Increasing $N$ makes the scheme more secure, but it also increases the size of ciphertexts, so we pay a price in efficiency. The integer $K$   whose value affects the message space size and the hardness of , the . Increasing $N$ ``increases'' the product $\prod p_i$, since there are more primes involved, which therefore increases the potential value of $P$
+
+\
+
 The hardness is in the fact that each pair $\{p_i,q_i\}$ is known from $p_iq_i$, but correctly deciding which of the two is $p_i$ requires a choice. Choosing the wrong value at one component will give an incorrect decryption, since reducing modulo $q_i$ will not eliminate the multiple of $p_i$ in the encryption. In the worst case for Eve, then, it will take her (naively, at least) $2^N$ tries to decrypt the message. It can be noted, too, that an incorrect choice at any point will result in a completely incorrect decryption, since reducing modulo $q_i$ at any point could give a drastically different reduction in that component, which will cause the Chinese Remainder Theorem to return an entirely incorrect value.
 
 The size of the primes $p_i$ and $q_i$ is up to the user; larger primes allow for a larger message space, but they also lead to larger ciphertexts. This is a trade-off between efficiency and security that will be analyzed in more depth later on, but for now, we note that it is also possible to create a larger message space by increasing the size of $N$. This will also affect the size of a cipher text, but it has the potential benefit of keeping the values in each component relatively smaller.
 
-The integer $K$ represents the number of ways we can mask a message with multiples of $P$. Note that if this masking were impossible, then it would be easy to determine the primes $p_i$ from encryptions of zero by taking the component-wise GCD of several such encryptions:
+The integer $K$ represents the number of ways we can mask or add noise a message with multiples of $P$. If this masking was not performed, then it would be easy for an eavesdropper to determine the primes $p_i$ from encryptions of zero. Consider a collection of $r$ encryptions of zero:
 
 \
 
@@ -146,6 +171,20 @@ e(0) & = & (a_{r,1}p_1 \pmod{p_1q_1},\dots,a_{r,N}p_N \pmod{p_Nq_N})
 \ea$
 
 \
+
+Since reducing an integer $l$ modulo $M$ is done by adding an appropriate multiple of $M$ to $l$, we can express the above as:
+
+\
+
+$\begin{array}{rcl}
+e(0) & = & (a_{1,1}p_1+b_{1,1}p_1q_1,\dots,a_{1,N}p_N + b_{1,N}p_Nq_N) \\
+\ & \vdots & \\
+e(0) & = & (a_{r,1}p_1 b{r,1}p_1q_1,\dots,a_{r,N}p_N b_{r,N}p_Nq_N)
+\ea$
+
+\
+
+where the $b_{i,j}$ are the appropriate factors necessary to perform reduction in each component. Now, the $i$th component of each $j$th encryption is a multiple of $p_i$, namely $(a_{j,i}+b_{j,i}q_i)p_i$, so the component-wise GCD of the $r$ encryptions above will likely give us all of the $p_i$.
 
 By setting the message space to be $\Z/P\Z$, we ensure that even if a sum or product of messages is greater than $P$, reducing modulo $P$ will give the well-defined sum or product in the message space.
 
@@ -189,7 +228,7 @@ While this scheme illustrates the ideas we will use later, it is not very secure
 
 \
 
-This scheme was easily broken because it relied on a fairly easy problem: given a collection of polynomials in a principal ideal, find a generator for the ideal. This is a basic case of a more general problem:
+The scheme above was easily broken because it relied on a fairly easy problem: given a collection of polynomials in a principal ideal, find a generator for the ideal. This is easily found because we can compute fairly efficiently the greatest common divisor of two polynomials in $\Z[x]$. This is a basic case of a more general problem:
 
 \
 
@@ -197,7 +236,7 @@ This scheme was easily broken because it relied on a fairly easy problem: given 
 
 \
 
-If the structure of $R$ is simple, then this problem is correspondingly easy, as we saw above in the case of our set of generators being multiples of a single polynomial $f\in \Zx$. However, if we look instead at multivariate polynomial rings such as $\Zxy$ or $\Zpxy$, the problem might not be so simple. We start by looking at the former
+If the structure of $R$ is simple, then this problem is correspondingly easy, as we saw above in the case of our set of generators being multiples of a single polynomial $f\in \Zx$. The ease of solution here comes from the fact that greatest common divisors are fairly easy to compute over $\Zx$; with the greatest common divisor of our generators available, we can easily test whether However, if we look instead at multivariate polynomial rings such as $\Zxy$ or $\Zpxy$, the problem might not be so simple.
 
 \
 
@@ -234,19 +273,32 @@ and to decrypt, we first evaluate at $(x_1,z_2,\ldots,z_n)$ and then reduce modu
 
 \section{Applications}
 
+Beyond theoretical formulation, it is important to see how these schemes might perform in practice. As mentioned in the introduction, the efficiency of homomorphic schemes has been a major obstacle to their dissemination, and 
+
 \subsection{Application to medical needs}
 
 \
 
 \subsection{Application to finance}
 
-\
+\ EXAMPLE OF STD-DEV
+
+A significant drawback of using our choice-based encryption scheme for the manipulation of statistics is made apparent when we consider taking the standard deviation of many numbers. This requires being able to make a large number of well-defined multiplications, which may be impossible, especially if the numbers in question are large. Problems like this may be more suited to our multivariate scheme, which can make arbitrary numbers of well-defined multiplications. We may lose efficiency, but in computations that require correctness over
 
 \section{Implementation}
 
 \
 
 \section{Appendix A: Common Attacks}
+
+This section is a compilation of and reference for some of the types of attacks considered in the duration of this project.
+
+\begin{itemize}
+\item gcd attacks
+\item G.B. attacks (type of gcd)
+\item using known encryptions of zero to identify encryptions of the same value
+\item
+\end{itemize}
 
 \
 
@@ -255,5 +307,12 @@ and to decrypt, we first evaluate at $(x_1,z_2,\ldots,z_n)$ and then reduce modu
 \
 
 \section{Appendix C: Failed Attempts}
+
+\section{Notes}
+Cite Donald Knuth, Art of Computer Programming, Addison-Wesley Publishing Company, Reading, Massachusetts, second addition, pp 273-4 for representation of multivariate polynomials using linked lists.
+
+\
+
+
 
 \end{document}  
