@@ -293,20 +293,94 @@ void llisttest()
     llist B;
     B.insert(-1,0,0);
     B.insert(1,1,0);
-    llist C(A*B);
-    C.listprint("A*B = ");
-    bigint aa(bigint(50)/bigint(16));
+    
+    llist C(A*B+T);
+    C.printinfo("C := A*B+T = ");
+    bigint aa(bigint(50)/16);
     cout << "aa = " << aa << "\n";
     llist D(C.quot_x(A));
+    A.printinfo("A");
+    T.printinfo("T");
     D.printinfo("C/A");
+    llist RND(RAND_MVAR_POLY(4, bigint(1000)));
+    RND.printinfo("RND");
+    (C.reduce_x(T)).printinfo("C mod T");
+    
+    clock_t t=clock();
+    llist f, g;
+    bigint z0;
+    MULTICRYPT_KEYGEN(f,g,z0);
+    f.printinfo("keygen f");
+    g.printinfo("keygen g");
+    (g.eval_y(z0)).printinfo("g(x,z0)");
+    cout << "z0 = " << z0 << "\n";
+    bigint m(45023842039482039);
+    llist ENC(MULTICRYPT_ENCRYPT(m,f,g));
+    bigint ret(MULTICRYPT_DECRYPT(ENC,f,g,z0));
+    cout << "original message = " << m << "\ndecryption = " << ret << "\n";
+    cout << "this whole process took " << t << " clock ticks, or " << ((float)t)/CLOCKS_PER_SEC << " seconds" << "\n";
+    //ENC.printinfo("enc");
+    
+    
 }
 
-int main(void)
+void grob_gens(int deg, bigint log_coeff_size, int num_gens)
+{
+    //this function saves a collection of encryptions of zero to a file M2Results.txt using the arguments as parameters
+    //arguments:
+    //  num_gens: the number of encryptions of zero generated (i.e. elements of (f,g))
+    //  coeff_size: size of the polynomial coefficients for f and g
+    //  deg: the degree of f and g
+    
+    int i;
+    bigint coeff_size(POW(2,log_coeff_size));
+    
+    llist f, g;
+    bigint z0;
+    MULTICRYPT_KEYGEN(f,g,z0,deg,coeff_size);
+    
+    ofstream file;
+    file.open("./Polys.txt", ios::out | ios::trunc); //file to write polynomial list to
+    
+    for(i=0;i<num_gens;i++)
+    {//generate encryptions of zero
+        llist enc=MULTICRYPT_ENCRYPT(bigint(0),f,g,deg,coeff_size);
+        cout << MULTICRYPT_DECRYPT(enc,f,g,z0);
+        if(file.is_open())
+        {
+            enc.print_to_file(&file);
+            if(i<num_gens-1)
+                file << ",";
+        }
+    }
+    file.close();
+}
+
+int main(int argc, char ** argv)
 {
     srand(time(NULL));
-    //functest();
-    //ENCRYPTtest();
-    //user_encryption_test();
-    llisttest();
+    char * arg=argv[1];
+    if(arg==((string) "func"))
+        functest();
+    else if(arg==((string) "choice"))
+    {
+        ENCRYPTtest();
+        user_encryption_test();
+    }
+    else if(arg==((string) "multi"))
+    {
+        llisttest();
+    }
+    else if(arg==((string) "grob"))
+    {
+        if(argc!=5)
+        {
+            cout << "usage: ./enc grob <degree> <log_2 of coefficient size> <number of encryptions>\n\n";
+        }
+        else
+        {
+            grob_gens(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]));
+        }
+    }
 	return 0;
 }

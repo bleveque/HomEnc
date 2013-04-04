@@ -24,6 +24,8 @@ using namespace std;
 #define NUMCOMP 3
 #define NWLN (cout << "\n")
 #define BIGINTSIZE (sizeof(mpz_class))
+#define Z0_SIZE 100000
+#define MULTICRYPT_DEGREE 5
 
 typedef mpz_class bigint;
 typedef mpz_class mpz;

@@ -75,7 +75,7 @@
 
 \section[Intro]{Introduction and background}
 
-Introduce idea of FHE. Define term (plaintext, ciphertext, message, message space, ciphertext space, cryptosystem, encryption, key generation, decryption $\N=\Z_{\geq 0}$).
+In an age of ubiquitous computation, digital security is an important aspect of everyday life. Introduce idea of FHE. Define terms (plaintext, ciphertext, message, message space, ciphertext space, cryptosystem, encryption, key generation, decryption $\N=\Z_{\geq 0}$).
 
 \
 
@@ -192,7 +192,7 @@ By setting the message space to be $\Z/P\Z$, we ensure that even if a sum or pro
 
 \
 
-\claim If $m<M$, then $d(e(m)) = m$
+\claim If $m<P$, then $d(e(m)) = m$
 
 \pf Let $(N,\{p_i\},\{q_i\},K,P)$ be our secret key. Then \begin{equation} e(m) = \{m+a_ip_i+kP \pmod{p_iq_i}\}\end{equation} for some random $a_i$ and a random $k<K$. Then reducing each component modulo the corresponding $p_i$ gives \begin{equation} \{m+kP \pmod{p_i}\} \end{equation} Now, using the Chinese Remainder Theorem gives \begin{equation} m+kP \pmod{\prod p_i} \end{equation} Since we chose $m<P$ and $k<K$, and $P$ was defined such that $KP<\prod p_i$, we have that $m+kP <\prod p_i$, so \begin{equation} m+kP \pmod{\prod p_i} = m+kP\end{equation} Now, reducing modulo $P$ gives $m$, since $m\in \Z/P\Z$.
 
@@ -236,23 +236,73 @@ The scheme above was easily broken because it relied on a fairly easy problem: g
 
 \
 
-If the structure of $R$ is simple, then this problem is correspondingly easy, as we saw above in the case of our set of generators being multiples of a single polynomial $f\in \Zx$. The ease of solution here comes from the fact that greatest common divisors are fairly easy to compute over $\Zx$; with the greatest common divisor of our generators available, we can easily test whether However, if we look instead at multivariate polynomial rings such as $\Zxy$ or $\Zpxy$, the problem might not be so simple.
+If the structure of $R$ is simple, then this problem is correspondingly easy, as we saw above in the case of our set of generators being multiples of a single polynomial $f\in \Zx$. The ease of solution here comes from the fact that greatest common divisors are fairly easy to compute over $\Zx$; with the greatest common divisor of our generators available, we can easily test whether the gcd divides any other encryption to see if it is an encryption of zero. However, if we look instead at multivariate polynomial rings such as $\Zxy$ or $\Zpxy$, the problem might not be so simple. It is in this spirit that we formulate the following scheme:
 
 \
 
 \subsubsection{Scheme}
 
+The scheme goes as follows:
+
+\begin{itemize}
+\item Key generation
+\begin{enumerate}
+\item Pick a general degree bound $D$ and a coefficient bound $B$
+\item Pick a random number $z_0 < B$
+\item Pick a random polynomial $f$ with total degree less than or equal to $D$ and coefficients less than $B$
+\item Pick a random polynomial $g'$ of total degree less than or equal to $D-1$
+\item Set $g := (y-z_0)g'$
+\item Return private key $(f,g,z_0)$
+\end{enumerate}
+
+\
+
+\item Encryption ($e$)
+\begin{enumerate}
+\item Pick a message $m\in \M := \Z$
+\item Pick random polynomials $a$ and $b$ which respect the degree and coefficient bounds
+\item return $e(m) := m+af+bg$
+\end{enumerate}
+
+\
+
+\item Decryption ($d$)
+\begin{enumerate}
+\item Evaluate an encryption at $z_0$
+\item Reduce the result modulo $f(x,z_0)$, a single-variable polynomial, and return the result
+\end{enumerate}
+\end{itemize}
+
 \
 
 \subsubsection{Explanation}
+
+We can use the results below to choose our degree and coefficient bounds appropriately to assure us of security. The idea behind our scheme is to give an encryption
+which is a multivariate polynomial (to increase the complexity of the Groebner basis computation), but which can be easily reduced during the decryption stage.
+This is accomplished by constructing our secret key $g$ such that it vanishes at the line $y=z_0$. We can then plug in $(x,z_0)$ to eliminate $g$, and we are left
+with $m+(af)(x,z_0)$. Reduction modulo single variable polynomials is easy to accomplish, so we can then reduce modulo $f(x,z_0)$ to retrieve $m$. Since reducing
+modulo a polynomial does not put any restrictions on the size of $m$ (as reducing modulo an integer would), $m$ can be arbitrarily large and still go through
+encryption and decryption in a well-defined manner.
 
 \
 
 \subsubsection{Correctness of encryption/decryption}
 
+We have broached this subject above, and now we will prove it
+
+\
+
+\claim If $m\in \Z$, then $d(e(m)) = m$
+
+\pf First, encryption gives us \[e(m) = m+af+bg\] for some $a$ and $b$, where we know that $g(x,z_0)=0$ by construction. In order to decrypt, we first evaluate at
+$(x,z_0)$, which gives \[e(m)(x,z_0) = m+a(x,z_0)f(x,z_0)\] This is a single variable polynomial which can be reduced modulo the polynomial $f(x,z_0)$ (which is
+known to the decryptor, since $f$ and $z_0$ are both components of the secret key) to give $m$. This proves correctness.
+
 \
 
 \subsubsection{Correctness of homomorphic operations}
+
+Now we prove that the sum and product of encryptions will decrypt to the sum and product of the original messages.
 
 \
 
@@ -266,7 +316,7 @@ $\ba
 e(m) & = & m + af + bg
 \ea$
 
-and to decrypt, we first evaluate at $(x_1,z_2,\ldots,z_n)$ and then reduce modulo $f(x_1,z_2,\ldots,z_n) \in \Z[x_1]$.
+and to decrypt, we first evaluate at $(x_1,z_2,\ldots,z_n)$ and then reduce modulo $f(x_1,z_2,\ldots,z_n) \in \Z[x_1]$. Further tests would be necessary to see if increasing the number of variables is an effective way to increase the computational complexity of Groebner basis computation. 
 
 \
 

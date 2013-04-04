@@ -1,6 +1,7 @@
 #ifndef LLIST_H
 #define LLIST_H
 
+#include <fstream>
 #include "common.h"
 
 /* doubly linked list for representing 
@@ -34,6 +35,7 @@ class llist
 		bigint get_lead_coeff(void);
 		void listprint(string s);
 		void printinfo(string s);
+		void print_to_file(ofstream * file);
 		llist quot_x(const llist& L);
 		llist reduce_x(const llist& L);
 		void trim_zeros(void);

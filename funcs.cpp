@@ -257,16 +257,91 @@ array ARRSUM(array * arrs, int N)
     return ret;
 }
 
-bigint SUM(array arr)
+llist RAND_MVAR_POLY(int totdeg, bigint coeffbd)
 {
-    int i, len=arr.get_len();
-    bigint sum(0);
-    for(i=0;i<len;i++)
+    int i,j;
+    llist ret;
+    int xdeg=rand()%(totdeg-1)+1;
+    int ydeg=totdeg-xdeg;
+    for(i=0;i<=xdeg;i++)
     {
-        sum+=arr[i];
+        for(j=0;j<=ydeg;j++)
+        {
+            bigint coeff;
+            int test=rand()%10;
+            if(test<5 && (!(i==xdeg && j==ydeg)))
+                coeff=bigint(0);
+            else
+                coeff=RAND(coeffbd,coeffbd/bigint(2));
+            ret.insert(coeff,i,j);
+        }
     }
-    return sum;
+    return ret;
 }
+
+void MULTICRYPT_KEYGEN(llist &f, llist &g, bigint &z0)
+{
+    //generate random polynomials f, g1, set g=g1*(y-z0)
+    z0=RAND(Z0_SIZE,Z0_SIZE/2);
+    f=RAND_MVAR_POLY(MULTICRYPT_DEGREE,Z0_SIZE);
+    llist g1(RAND_MVAR_POLY(MULTICRYPT_DEGREE-1,Z0_SIZE));
+    llist g2y;
+    g2y.insert(1,0,1);
+    g2y.insert(-z0,0,0);
+    g=g1*g2y;
+}
+
+void MULTICRYPT_KEYGEN(llist &f, llist &g, bigint &z0, int totaldeg, bigint coeff_size)
+{
+    //generate random polynomials f, g1, set g=g1*(y-z0)
+    //totaldeg is halved below since it becomes the degree of both x and y in RAND_MVAR_POLY
+    z0=RAND(coeff_size,coeff_size/2);
+    f=RAND_MVAR_POLY(totaldeg,coeff_size);
+    llist g1(RAND_MVAR_POLY(totaldeg-1,coeff_size));
+    llist g2y;
+    g2y.insert(1,0,1);
+    g2y.insert(-z0,0,0);
+    g=g1*g2y;
+}
+
+bigint MULTICRYPT_DECRYPT(llist c, llist f, llist g, bigint z0)
+{
+    llist inter(c.eval_y(z0));
+    llist ret(inter.reduce_x(f.eval_y(z0)));
+    assert(ret.get_xdeg()==0);
+    return ret.get_lead_coeff();
+}
+
+llist MULTICRYPT_ENCRYPT(bigint m, llist f, llist g)
+{
+    llist ret;
+    llist M;
+    M.insert(m,0,0);
+    llist a(RAND_MVAR_POLY(MULTICRYPT_DEGREE,Z0_SIZE));
+    llist b(RAND_MVAR_POLY(MULTICRYPT_DEGREE,Z0_SIZE));
+    ret=M+a*f+b*g;
+    return ret;
+}
+
+llist MULTICRYPT_ENCRYPT(bigint m, llist f, llist g, int deg, bigint coeff_size)
+{
+    llist ret;
+    llist M;
+    M.insert(m,0,0);
+    llist a(RAND_MVAR_POLY(deg,coeff_size));
+    llist b(RAND_MVAR_POLY(deg,coeff_size));
+    ret=M+a*f+b*g;
+    return ret;
+}
+
+bigint SQRT(bigint b)
+{
+    bigint r;
+    mpz_sqrt(r.get_mpz_t(),b.get_mpz_t());
+    return r;
+}
+
+
 
 bigint STDDEVNUM(array arr)
 {
@@ -291,4 +366,15 @@ array STDDEVNUMARR(array * arrs, int N)
         dev=dev+COMPWISEPROD((arrs[i]*N-sum),(arrs[i]*N-sum));
     }
     return dev;
+}
+
+bigint SUM(array arr)
+{
+    int i, len=arr.get_len();
+    bigint sum(0);
+    for(i=0;i<len;i++)
+    {
+        sum+=arr[i];
+    }
+    return sum;
 }

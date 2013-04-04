@@ -99,6 +99,11 @@ bigint RAND(bigint bound, bigint lbound)
         r3=rand();
     }
     bigint r=r1*r2*r3;
+    while(r<bound-lbound)
+    {
+        bigint rnd(rand());
+        r=r*rnd;
+    }
     return MOD(r,bound-lbound)+lbound;
 }
 bigint RAND(bigint bound)

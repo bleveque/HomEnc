@@ -1,5 +1,5 @@
-rm M2Results.txt
-rm SingularResults.txt
+rm -i M2Results.txt
+rm -i SingularResults.txt
 rm M2Gens.txt
 touch M2Results.txt
 touch SingularResults.txt

@@ -193,6 +193,7 @@ void llist::listprint(string s)
 
 void llist::printinfo(string s)
 {
+    trim_zeros();
     node * ptr=head->next;
     cout << s << " = ";
     if(!ptr)
@@ -213,6 +214,29 @@ void llist::printinfo(string s)
         ptr=ptr->next;
     }
     cout << "\n";
+}
+
+void llist::print_to_file(ofstream * file)
+{
+    trim_zeros();
+    node * ptr=head->next;
+    if(!ptr)
+        *file << "0";
+    while(ptr)
+    {
+        if(ptr->coeff != 0)
+        {
+            *file << "(" << ptr->coeff;
+            if(ptr->xdeg != 0)
+                *file << "*x^" << ptr->xdeg;
+            if(ptr->ydeg != 0)
+                *file << "*y^" << ptr->ydeg;
+            *file << ")";
+            if(ptr->next)
+                *file << "+";
+        }
+        ptr=ptr->next;
+    }
 }
 
 llist llist::quot_x(const llist& L)
@@ -247,9 +271,9 @@ llist llist::quot_x(const llist& L)
             return failure;
         }
     }
-    R.printinfo("Rem");
-    Q.printinfo("Quot");
-    (T-Q*L-R).printinfo("T-Q*L-R");
+    //R.printinfo("Rem");
+    //Q.printinfo("Quot");
+    //(T-Q*L-R).printinfo("T-Q*L-R");
     Q.trim_zeros();
     R.trim_zeros();
     return Q;
@@ -259,9 +283,10 @@ llist llist::reduce_x(const llist& L)
 {
     //assume that L and this are both polynomials only in x (i.e. ydeg=0 for all terms)
     //compute the reduction this%L
-    llist ret;
-    
-    
+    llist Q(quot_x(L));
+    llist T(*this);
+    llist ret(T-Q*L);
+    return ret;
 }
 
 void llist::trim_zeros(void)

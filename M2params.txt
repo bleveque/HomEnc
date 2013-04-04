@@ -1,0 +1,3 @@
+totalDegree=6
+sizeCoeffs=64
+numPolysGiven=6
