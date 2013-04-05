@@ -75,7 +75,12 @@
 
 \section[Intro]{Introduction and background}
 
-In an age of ubiquitous computation, digital security is an important aspect of everyday life. Introduce idea of FHE. Define terms (plaintext, ciphertext, message, message space, ciphertext space, cryptosystem, encryption, key generation, decryption $\N=\Z_{\geq 0}$).
+In an age of ubiquitous computing, digital security is an important aspect of everyday life. As computations become more expensive and time-consuming, and as the need for data storage increases, cloud computation is rising in popularity. With this rise comes the need for a new class of security protocols that can allow data to be stored in encrypted form yet manipulated in a meaningful way by third parties.
+
+\subsection{Introduction to cryptographic concepts} 
+Hello
+
+Introduce idea of FHE. Define terms (plaintext, ciphertext, message, message space, ciphertext space, cryptosystem, encryption, key generation, decryption $\N=\Z_{\geq 0}$).
 
 \
 
@@ -302,7 +307,11 @@ known to the decryptor, since $f$ and $z_0$ are both components of the secret ke
 
 \subsubsection{Correctness of homomorphic operations}
 
-Now we prove that the sum and product of encryptions will decrypt to the sum and product of the original messages.
+Now we prove that sums and products of encryptions are valid encryptions of the sums and products of the corresponding plaintexts.
+
+\claim If $m_1,m_2 \in \Z$, then $e(m_1)+e(m_2) = e(m_1+m_2)$
+
+\pf Let us recall first that the equality above is a coset equality, since encryptions are equivalent if they ar 
 
 \
 
