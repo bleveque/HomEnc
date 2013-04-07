@@ -6,10 +6,11 @@
 
 
 make
-for ((i=5;i<=5;i+=1));do             # degree of f,g
-	for ((j=6;j<=10;j+=2));do        # log-size of the coefficients of f,g
+for ((i=4;i<=5;i+=1));do             # degree of f,g
+	for ((j=6;j<=30;j+=2));do        # log-size of the coefficients of f,g
 		for ((k=2;k<=10;k+=4));do    # number of polynomials fed to the gb function
 			for ((l=0;l<5;l++));do   # five values to get a decent average
+				echo degree=$i, log-size=$j, numpolys=$k
 				./enc grob $i $j $k
 				echo totalDegree=$i > ./M2Params.txt
 				((sizecoeffs=2**j))
@@ -29,6 +30,7 @@ for ((i=5;i<=5;i+=1));do             # degree of f,g
 				1+' > M2test.txt
 				M2 --stop --no-backtrace M2test.txt
 				sleep 1
+				echo ""
 			done
 		done
 	done

@@ -1,3 +1,3 @@
 totalDegree=5
-sizeCoeffs=1024
-numPolysGiven=10
+sizeCoeffs=4096
+numPolysGiven=2
