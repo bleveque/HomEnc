@@ -3,6 +3,8 @@
 \usepackage{amssymb}
 \usepackage{amsthm}
 \usepackage{fullpage}
+\usepackage{tikz}
+\tikzset{node distance=2cm, auto}
 \DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -75,16 +77,39 @@
 
 \section[Intro]{Introduction and background}
 
-In an age of ubiquitous computing, digital security is an important aspect of everyday life. As computations become more expensive and time-consuming, and as the need for data storage increases, cloud computation is rising in popularity. With this rise comes the need for a new class of security protocols that can allow data to be stored in encrypted form yet manipulated in a meaningful way by third parties.
+In an age of ubiquitous computing, digital security is an important aspect of everyday life. As computations involving large data sets become more expensive and time-consuming, and as the need for data storage increases, cloud computing has rapidly developed to become a platform to which people and institutions alike turn for their computational needs. With this rise in popularity comes the need for a new class of security protocols that allow data to be stored in encrypted form yet manipulated in a meaningful way by third parties. In this thesis, we consider two such cryptographic schemes. We discuss the motivation behind them, analyze their security, and present data regarding both their security and efficiency. We also provide implementations of the systems in question in C++ and explain the code's design.
 
-\subsection{Introduction to cryptographic concepts} 
-Hello
+Two goals in the very close periphery throughout the development of this project have been reproducibility and accessibility. In this vein, the implementations produced and the data generated are posted in a public repository on Github at (ADDRESS), and a website accompanying the project can be found at (ADDRESS).
 
+\subsection{Introduction to cryptographic concepts and terminology} 
+
+INTRO SENTENCE. A \emph{message} (also called a \emph{plaintext}) is any information you might want to store securely. For example, an email or a bank statement. An \emph{encryption function} accepts this message and outputs a corresponding \emph{ciphertext}, from which it should be very difficult to 
+
+Often, this message is first \emph{encoded} to transform it into a value which can 
 Introduce idea of FHE. Define terms (plaintext, ciphertext, message, message space, ciphertext space, cryptosystem, encryption, key generation, decryption $\N=\Z_{\geq 0}$).
 
 \
 
-Imagine you have a large collection of data points and want to compute the mean or standard deviation. You have have two options: you can either do this computation yourself at a potentially high computational cost, or you can delegate this work to another party and risk losing privacy.  The goal of fully homomorphic encryption is to minimize both potential costs by allowing secure delegation. In practice, this might mean being able to store data on The Cloud in an encrypted form such that a third party could still manipulate the data in a meaningful way. By meaningful, we mean that any combination of sums and products of encryptions decrypt to the corresponding sums and products of the original, unencrypted data. We call such a combination an \emph{arithmetic circuit}, or just a \emph{circuit}. If this were possible, data could be encrypted, operated upon, and decrypted in a completely well-defined manner. What we are looking for, then, is an encryption function that is a \emph{ring homomorphism} from the message space $\M$ to the ciphertext space $\mathcal{C}$. Recall that a ring homomorphism is a map $\sigma: \M \rightarrow \mathcal{C}$ such that for any $x,y\in \M$, \[\sigma(x)+\sigma(y) = \sigma(x+y)\] \[\sigma(x) \sigma(y) = \sigma(xy)\] If our encryption function $e$, then, is a ring homomorphism, we could add or multiply two encryptions and the result would be the encryption of the sum or product of the corresponding plaintexts. A cryptosystem employing such an encryption function is said to give \emph{fully homomorphic encryption} (FHE). If the encryption function in question is a homomorphism in most circumstances, but is not guaranteed to give well-defined decryption after the application of every circuit, the scheme is said to provide \emph{somewhat homomorphic encryption}. Such a scheme might arise if the decryption function requires its input to be of a certain size, which large circuits might exceed. For motivation, consider the following toy examples.
+\subsection{Introduction to homomorphic encryption}
+
+Imagine you have a large collection of data points and want to compute the mean or standard deviation. You have have two options: you can either do this computation yourself at a potentially high computational cost, or you can delegate this work to another party and risk losing privacy.  The goal of fully homomorphic encryption is to minimize both potential costs by allowing secure delegation. In practice, this might mean being able to store data on the Cloud in an encrypted form such that a third party could still manipulate the data in a meaningful way. By meaningful, we simply mean that after they operate on our data, we can decrypt the result and obtain exactly the value their operations would have achieved on our original plaintext data. The following diagram shows this process:
+
+\
+
+$\begin{tikzpicture}
+\node (m) {messages};
+\node (fm) [right of=m] {operations applied to messages};
+\node (em) [above of=m] {encryptions};
+\node (fem) [right of=em] {operations applied to encryptions};
+\draw[->] (m) to node {operations} (fm);
+\draw[->] (fem) to node {decryption} (fm);
+\draw[->] (m) to node {encryption} (em);
+\draw[->] (em) to node {operations} (fem);
+\end{tikzpicture}$
+
+\
+
+More technically, by ``meaningful'' we mean that any combination of sums and products of encryptions decrypt to the corresponding sums and products of the original, unencrypted data. We call such a combination an \emph{arithmetic circuit}, or just a \emph{circuit}. If this were possible, data could be encrypted, operated upon, and decrypted in a completely well-defined manner. What we are looking for, then, is an encryption function that is a \emph{ring homomorphism} from the message space $\M$ to the ciphertext space $\mathcal{C}$. Recall that a ring homomorphism is a map $\sigma: \M \rightarrow \mathcal{C}$ such that for any $x,y\in \M$, \[\sigma(x)+\sigma(y) = \sigma(x+y)\] \[\sigma(x) \sigma(y) = \sigma(xy)\] If our encryption function $e$, then, is a ring homomorphism, we could add or multiply two encryptions and the result would be the encryption of the sum or product of the corresponding plaintexts. A cryptosystem employing such an encryption function is said to give \emph{fully homomorphic encryption} (FHE). If the encryption function in question is a homomorphism in most circumstances, but is not guaranteed to give well-defined decryption after the application of every circuit, the scheme is said to provide \emph{somewhat homomorphic encryption}. Such a scheme might arise if the decryption function requires its input to be of a certain size, which large circuits might exceed. For motivation, consider the following toy examples.
 
 \
 

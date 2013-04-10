@@ -320,8 +320,6 @@ void llisttest()
     cout << "original message = " << m << "\ndecryption = " << ret << "\n";
     cout << "this whole process took " << t << " clock ticks, or " << ((float)t)/CLOCKS_PER_SEC << " seconds" << "\n";
     //ENC.printinfo("enc");
-    
-    
 }
 
 void grob_gens(int deg, bigint log_coeff_size, int num_gens)
