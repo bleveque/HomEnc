@@ -20,6 +20,7 @@ array ENCRYPT(bigint m, array p, array q, bigint P, int check, int print);
 int IN(array arr, bigint nw);
 void KEYGEN(array &p, array &q, bigint &P);
 void KEYGEN(array &p, array &q, bigint &P, int N, int cleararrs);
+void KEYGEN(array &p, array &q, bigint &P, bigint &M, bigint &K, int &N, int cleararrs);
 void MULTICRYPT_KEYGEN(llist &f, llist &g, bigint &z0);
 void MULTICRYPT_KEYGEN(llist &f, llist &g, bigint &z0, int deg, bigint coeff_size);
 bigint MULTICRYPT_DECRYPT(llist c, llist f, llist g, bigint z0);

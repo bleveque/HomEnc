@@ -357,9 +357,19 @@ void grob_gens(int deg, bigint log_coeff_size, int num_gens)
 int main(int argc, char ** argv)
 {
     srand(time(NULL));
+    array p;
+    array q;
+    bigint P(0);
+    bigint M(0);
+    bigint K(0);
+    int N=0;
+    int cleararrs=0;
+    KEYGEN(p,q,P,M,K,N,cleararrs);
     char * arg=argv[1];
     if(arg==((string) "func"))
+    {
         functest();
+    }
     else if(arg==((string) "choice"))
     {
         ENCRYPTtest();

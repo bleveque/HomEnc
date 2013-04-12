@@ -126,7 +126,44 @@ bigint CRT(array rlist, array mlist)
 {
     return CRT(rlist,mlist,0);
 }
-
+void KEYGEN(array &p, array &q, bigint &P, bigint &M, bigint &K, int &N, int cleararrs)
+{
+    //generates the lists {p_i} and {q_i}
+    //if you want to also generate P, M, K, or N, send them in as 0
+    if(cleararrs)
+    {
+        p.clear();
+        q.clear();
+    }
+    if(P==0)
+        P=NEXTPRIME(RAND(10000,1000));
+    if(M==0)
+        M=RAND(100,1);
+    if(K==0)
+        K=RAND(30,10);
+        
+    bigint prodplb(POW((K+1)*P,M));
+    cout << "prodplb = " << prodplb;
+    NWLN;
+        
+    //assume input arrays are empty
+    int i;
+    bigint nwp, nwq;
+    for(i=0;i<N;i++)
+    {
+        nwp=NEXTPRIME(RAND(1000000,10001));
+        while(IN(p,nwp))
+            nwp=NEXTPRIME(RAND(1000000,10001));
+        p.append(nwp);
+        
+        nwq=NEXTPRIME(RAND(1000000,10001));
+        while(IN(q,nwq))
+            nwq=NEXTPRIME(RAND(1000000,10001));
+        q.append(nwq);
+    }
+    bigint prodp=p.prod();
+    P=NEXTPRIME(RAND(10000,1001));
+}
 void KEYGEN(array &p, array &q, bigint &P, int N, int cleararrs)
 {
     if(cleararrs)
