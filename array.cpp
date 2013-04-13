@@ -84,7 +84,7 @@ array array::operator*(bigint b)
     return ret;
 }
 
-// array array::operator*(const array& arr)
+// array array::operator*(const array& arr) //ambiguous overloading
 // {
 //     assert(len==arr.len);
 //     int i;

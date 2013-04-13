@@ -70,8 +70,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\setcounter{tocdepth}{2}
-\setcounter{chapter}{-1}
+\setcounter{tocdepth}{2} %show up to subsections in table of contents
+\setcounter{chapter}{-1} %first chapter should be 0
 
 \title{Homomorphic Encryption}
 \author{Ben LeVeque}
@@ -131,21 +131,25 @@ so the word ``crypto'' would be encoded as the sequence of numbers $\{3,18,25,16
 \
 
 \section{Introduction to homomorphic encryption}
+\label{sec:intro_to_hom_enc}
 
 The idea of a homomorphic cryptosystem extends the ideas presented above by adding an additional requirement to the definition. To motivate this requirement, imagine you have a large collection of data points and want to compute their mean or standard deviation. You have have two options: you can either do this computation yourself at a potentially high computational cost, or you can delegate this work to another party and risk losing privacy by exposing your data.  The goal of fully homomorphic encryption is to minimize both potential costs by allowing secure delegation. In practice, this might mean being able to store data on the Cloud in an encrypted form such that a third party could still manipulate the data in a meaningful way. By meaningful, we simply mean that after they operate on our data, we can decrypt the result and obtain exactly the value their operations would have achieved on our original plaintext data. The following diagram illustrates this process:
 
 \
 
-$\begin{tikzpicture}
+\begin{center}
+$\begin{tikzpicture} \label{hom_diagram}
 \node (m) {messages};
 \node (fm) [right=6cm of m] {operations applied to messages};
 \node (em) [above=2cm of m] {encryptions};
 \node (fem) [above=2cm of fm] {operations applied to encryptions};
+\node(circarr) [above right=1cm and 3cm of m]{$\circlearrowright$};
 \draw[->] (m) to node {operations} (fm);
 \draw[->] (fem) to node {decryption} (fm);
 \draw[->] (m) to node {encryption} (em);
 \draw[->] (em) to node {operations} (fem);
 \end{tikzpicture}$
+\end{center}
 
 \
 
@@ -177,22 +181,22 @@ This thesis will present two encryption schemes and explore their security and e
 
 In this project, we formulate two schemes that show promise as either somewhat or fully homomorphic encryption schemes. The first,
 which is formulated entirely over the integers (and quotient rings thereof), relies on the hardness of making $N$ consecutive correct choices, where each choice
-is between two values. We will refer to this as ``choice-dependent encryption'' (CDE). The second, which is formulated over multivariate polynomial rings, relies on the hardness of the ideal membership problem (IMP) in this
+is between two values. We will refer to this as ``choice-based encryption'' (CBE). The second, which is formulated over multivariate polynomial rings, relies on the hardness of the ideal membership problem (IMP) in this
 setting. Similar schemes in the past---sometimes referred to as \emph{Polly Cracker} schemes after their introduction by Koblitz and Fellows (CITATION -- from GENTRY AS WELL?)---have been formulated over finite fields. The cryptosystem presented in section~\ref{sec:multicrypt}  below can be formulated over general rings, though we focus on an implementation over the integers. Translating this to an implementation over $\Z/p\Z$ is a matter of reducing coefficients, so while it is easy to reformulate in this setting, the security of the scheme may be compromised, as we will see.
 
 \
 
-\section{Choice-dependent encryption}
+\section{Choice-based encryption}
 
 \subsection{Scheme}
 
-We will first describe the scheme in question and subsequently analyze the motivation behind its construction and its cryptographic properties. The choice-dependent cryptosystem is defined using the following procedures:
+We will first describe the scheme in question and subsequently analyze the motivation behind its construction and its cryptographic properties. The choice-based cryptosystem is defined using the following procedures:
 
 \begin{itemize}
 \item Key generation ($KG$)
 \begin{enumerate}
 \item Pick a prime $P$; the message space is $\M := \ZP$
-\item Pick a number of multiplications $M\geq 1$ that our scheme will allow
+\item Pick a lower bound $M\geq 1$ on the number of operations that our scheme will allow
 \item Pick an integer $K$; this is the number of ways we will be able to mask a given message
 \item Pick $N\in \Z$ so that $2^N$ is sufficiently large
 \item Pick primes $\{p_i\}_{i=1}^N$ such that $((K+1)P)^M<\prod p_i$
@@ -205,7 +209,7 @@ We will first describe the scheme in question and subsequently analyze the motiv
 \item Pick a message $m\in \M$
 \item Pick random integers $\{a_i\}_{i=1}^N$
 \item Pick a random integer $k<K$
-\item Return $e(m):=\{m+a_ip_i+kP \pmod{p_iq_i}\}_{i=1}^N$; the ciphertext space is $\mathcal{C} := \prod_{i=1}^N(\Z/p_iq_i\Z)$
+\item Return $e(m):=(m+kP+a_ip_i \pmod{p_iq_i})_{i=1}^N$; the ciphertext space is $\mathcal{C} := \prod_{i=1}^N(\Z/p_iq_i\Z)$
 \end{enumerate}
 
 \item Decryption ($d$)
@@ -254,15 +258,15 @@ Finally, we note that by setting the message space to $\Z/P\Z$ rather than $\Z$,
 
 \subsection{Correctness of encryption/decryption}
 
-In order for the choice-dependent scheme above to be a valid cryptosystem, we need to prove that the composition of encryption with decryption is the identity function on the message space. Formally, we want: \[d\circ e \equiv id_{\ZP}\] We prove this below:
+In order for the choice-based scheme above to be a valid cryptosystem, we need to prove that the composition of encryption with decryption is the identity function on the message space. Formally, we want: \[d\circ e \equiv id_{\ZP}\] We prove this below:
 
-\begin{thm}[Correctness of encryption/decryption for CDE]
+\begin{thm}[Correctness of encryption/decryption for CBE]
 If $m\in\ZP$, then $d(e(m)) = m$.
 \end{thm}
 
 \begin{proof}
 Let $(N,\{p_i\},\{q_i\},K,P)$ be our secret key. Then
-\[e(m) = \{m+a_ip_i+kP \pmod{p_iq_i}\}_{i=1}^N\]
+\[e(m) = (m+kP+a_ip_i \pmod{p_iq_i})_{i=1}^N\]
 for some random $a_i$ and a random $k<K$. Step 1 of decryption performs reduction of each component modulo the corresponding $p_i$, giving
 \[\{m+kP \pmod{p_i}\}_{i=1}^N \]
 Now, using the Chinese Remainder Theorem in step 2 gives
@@ -275,59 +279,156 @@ Now, reducing modulo $P$ in step 3 gives $m$, since $m\in \ZP$.
 
 \subsection{Correctness of homomorphic operations}
 
-We now prove that the scheme is somewhat homomorphic up to the desired $M$ multiplications. Note that we measure the level of ``homomorphicity'' using multiplications rather than additions because mulitplications have a larger effect on the size of ciphertexts, and will more quickly cause our numbers to exceed $\prod p_i$. Let us first make the following definition:
+We now prove that the scheme is somewhat homomorphic up to the desired $M$ multiplications. Note that we measure the level of ``homomorphicity'' using multiplications rather than additions because mulitplications have a larger effect on the size of ciphertexts, and will more quickly cause our numbers to exceed $\prod p_i$. Let us first make the following definitions:
 
 \begin{definition}[Primitive encryption]
 A \emph{primitive encryption} $e(m) \in \mathcal{C}$ is an encryption on which no operations have been performed.
 \end{definition}
 
+\begin{definition}[$n$-circuit]
+An \emph{$n$-circuit} is a sequence of additions and multiplications such that when all multiplications are distributed out, there no more than $n$ total operations in the expression.
+\end{definition}
+
 Intuitively, we can think of a primitive encryption as one for which $<K$ multiples of $P$ have been added to each component as noise, as is the case when a message is first encrypted. Now, we will prove correctness:
 
-\begin{thm}[Correctness of homomorphic operations for CDE]
-If $C$ is a circuit with at most $M$ operations which acts on $n\leq M$ values, $C(m_1,\dots,m_n) = d(C(e(m_1),\dots,e(m_n)))$.
+\begin{thm}[Correctness of homomorphic operations for CBE]
+If $C$ is an $M$-circuit which acts on $n\leq M$ values, $C(m_1,\dots,m_n) = d(C(e(m_1),\dots,e(m_n)))$.
 \end{thm}
 
 \begin{proof}
+Consider two encryptions
+\begin{align*}
+e(m_1) &= (m_1+ k_1P+a_{1,i}p_i \pmod{p_iq_i})_{i=1}^N\\
+e(m_2) &= (m_2+ k_2P+a_{2,i}p_i \pmod{p_iq_i})_{i=1}^N
+\end{align*}
+Our procedure for addition of ciphertexts tells us that we should perform addition component-wise, so we get
+\begin{align*}
+e(m_1)+e(m_2) &= (m_1+k_1P+a_{1,i}p_i \pmod{p_iq_i}) + (m_2+ k_2P+a_{2,i}p_i \pmod{p_iq_i}) \\
+\ &= (m_1+m_2+ (k_1+k_2)P+(a_{1,i}+a_{2,i})p_i \pmod{p_iq_i})
+\end{align*}
+Let us assume for the moment that $m_1+m_1+(k_1+k_2)P < \prod p_i$. Then decrypting $e(m_1)+e(m_2)$ gives $m_1+m_2$, so we have that $e(m_1)+e(m_2) = e(m_1+m_2)$ (where equality here really means that $e(m_1)+e(m_2)$ is \emph{an} encryption of $m_1+m_2$, since random numbers are involved in each encryption, so it unlikely that an arbitrary encryption of $m_1$ plus and arbitrary encryption of $m_2$ will equal an arbitrary encryption of $m_1+m_2$). We will return to the question of the size of $m_1+m_2+(k_1+k_2)P$ shortly.
+
+Now consider the product of $e(m_1)$ and $e(m_2)$:
+\begin{align*}
+e(m_1) e(m_2) &= (m_1+ k_1P+a_{1,i}p_i \pmod{p_iq_i}) \cdot (m_2+ k_2P+a_{2,i}p_i \pmod{p_iq_i}) \\
+\ &= (m_1m_2+ (m_1k_2+m_2k_1+k_1k_2P)P+\\
+& \ \ \ \ \ \ \ \ \ \ \ ((m_1+k_1P)a_{2,i}+(m_2+k_2P)a_{1,i}+a_{1,i}a_{2,i}p_i)p_i \pmod{p_iq_i})
+\end{align*}
+In this case, as long as
+\[m_1m_2+ (m_1k_2+m_2k_1+k_1k_2P)P < \prod p_i\]
+we see that $e(m_1)e(m_2)$ will decrypt as $m_1m_2$ by applying the decryption function. Therefore, $e(m_1)e(m_2)$ is a valid encryption of $m_1m_2$, so $e(m_1)e(m_2) = e(m_1m_2)$. Together with our result for addition, this proves that our scheme is somewhat homomorphic, up to the point that the combination of $m$ and $P$ in each component is less than $\prod p_i$.
+
+We now show that this is the case for any $M$-circuit. Consider the growth of the combination of $m$ and $P$ as we add and multiply encryptions. Primitive encryptions have combinations less than $(K+1)P$, so a sum of two primitive encryptions will have a combination less than $2(K+1)P$ and a product of encryptions will have a combination less than $((K+1)P)^2$. An $M$-circuit with exclusively multiplications will then have a combination less than $((K_1)P)^M$, which by our constraints on the system is less than $\prod p_i$. Since multiplications have a greater effect on the size of the combination than additions, we have shown that our scheme is somewhat homomorphic for all $M$-circuits.
 
 \end{proof}
 
- since if $m_1, m_2 \in \M$, then \begin{equation} e(m_1) + e(m_2) = \{m_1+m_2 + (a_i+b_i)p_i + (k_1+k_2)P \pmod{p_iq_i}\} \end{equation}
 
-This is of the form of a regular encryption of the message $m_1+m_2$. The danger is that it is possible for $m_1+m_2+(k_1+k_2)P>\prod p_i$, in which case the Chinese Remainder Theorem would give an incorrect result. Similarly,
-\begin{equation} e(m_1)e(m_2) = \{m_1m_2+((m_1+k_1)b_i+(m_2+k_2)a_i+a_ib_i)p_i+(m_1k_2+m_2k_1+k_1k_2P)P \pmod{p_iq_i}\}\end{equation}
-Again, this is of the form of an encryption of the message $m_1m_2$, but we run into a similar as above. The danger is even greater now, since the numbers are growing multiplicatively instead of merely additively, now. Therefore, we will measure the homomorphicity in terms of the number of multiplications allowed by this system. As we see above, this depends on the size of the product of messages as well as the size of the product of messages and the values of $k$ that we pick.
+\subsection{Example of choice-based encryption}
 
-\
+To illustrate the concepts above, we will carry out a numerical example of encryption, application of circuits, and decryption. For this purpose, we will take our keys to be quite small, letting $N=2$, $M=3$, $K=3$, and $P=7$. Running the key generation function gives us
+\begin{align*}
+\{p_i\} &= \{263,251\}\\
+\{q_i\} &= \{223,263\}
+\end{align*}
+Note that
+\begin{align*}
+((K+1)P)^M &= 21952\\
+&< 66013\\
+&= \prod p_i
+\end{align*}
+Now, suppose our message is $m=4$. Running the encryption procedure with random values $\{a_i\} = \{11,13\}$ and $k=2$ gives
+\begin{align*}
+e(4) &= (4+kP+a_1p_1 \pmod{p_1q_1},4+kP+a_2p_2\pmod{p_1q_1}) \\
+&= (2911 \pmod{58649}, 3281 \pmod{66013})\\
+&= (2911, 3281)
+\end{align*}
+Now, running our decryption circuit, we first reduce each $i$th component by $p_i$, which gives
+\begin{align*}
+(2911 \pmod{263}, 3281 \pmod{251}) &= (18,18)
+\end{align*}
+We next use the Chinese Remainder Theorem, which trivially gives us
+\begin{align*}
+m+kP &\equiv 18 \pmod{66013}
+\end{align*}
+Finally, we reduce modulo $P=7$ to get
+\begin{align*}
+18 &\equiv 4 \pmod{7}
+\end{align*}
+which matches our original message $m=4$.
 
-\subsection{Analysis of homomorphicity}
+Now, we'll give an example of applying a circuit to encryptions. Consider the keys $N=3$, $M=3$, $K=4$, and $P=11$; the messages $m_1=2$, $m_2=4$, $m_3=9$; and the circuit $C(x_1,x_2,x_3) = x_1x_2+x_3$. Since $M=3$, and this circuit has three operations, these operations should be well-defined. Running key generation gives
+\begin{align*}
+\{p_i\} &= \{97,67,89\}\\
+\{q_i\} &= \{107,79,127\}
+\end{align*}
+Encrypting our three messages (computations omitted for brevity) gives:
+\begin{align*}
+e(m_1) &= (8097,649,3072)\\
+e(m_2) &= (8293,4805,7791)\\
+e(m_3) &= (4515,1728,5037) 
+\end{align*}
+Now, applying our circuit to the encryptions gives
+\begin{align*}
+C(e(m_1),e(m_2),e(m_3)) &= e(m_1)*e(m_2)+e(m_3)\\
+&= (8097\cdot 8293+4515, 649\cdot 4805+1728, 3072\cdot 7791+5037)\\
+&= (806,2596,10538)\\
+\end{align*}
+Decrypting this gives
+\begin{align*}
+d(C(e(m_1),e(m_2),e(m_3))) &= 6
+\end{align*}
+Applying our circuit to our unencrypted messages likewise gives
+\begin{align*}
+C(m_1,m_2,m_3) &= m_1m_2+m_3\\
+&= 6
+\end{align*}
+(recall that our messages are elements of $\ZP$). This shows that the diagram on page~\pageref{hom_diagram} is indeed commutative for our example. 
+
+
+
+\subsection{Analysis of homomorphicity in practice}
 \label{sec:choice_hom_analysis}
 
-In terms of the dangers mentioned above, the worst case is $m\approx P$ and $k\approx K$. If all of our messages were on this order and were encrypted with random $k$ around $K$, then we would be allowed only $\log_{(K+1)P}\prod p_i$ multiplications, since each multiplication would roughly raise the message $m+kP \approx (K+1)P$ to a power. If we want a guarantee, then, that we can perform $M$ multiplications on encryptions, we should set $\{p_i\}$ such that $((K+1)P)^M < \prod p_i$. There are two ways to accomplish this: increase the size of each prime $p_i$, or increase $N$, the number of components in each encryption. This decision can be left to the user.
+In practice, we may want to know the most efficient way to increase the number of homomorphic operations supported by our system. Since the parameters of the scheme tell us that
+\begin{align*}
+\#ops &\geq \log_{(K+1)P}\left(\prod_{i=1}^N p_i\right)
+\end{align*}
+we have several options for parameters to alter. We can decrease $K$, decrease $P$, increase $N$, or increase the values of the $p_i$. Decreasing $P$ or $K$ affects the security of the system, since we would have either a smaller message space or fewer ways to mask encryptions. On the other hand, increasing the size of each prime $p_i$ will increase the size of the ring $\Z/p_iq_i\Z$ in each component of an encryption, and will therefore cause our arithmetic on encryptions to run more slowly. Increasing $N$ (and maintaining the size of the $p_i$ and $q_i$) has a similar effect; now we have more components in each encryption, so arithmetic will be less efficient. However, increasing $N$ has the added benefit of increasing the complexity of a brute-force search through all $2^N$ combinations of $p_i$ and $q_i$.
 
-An additional concern is that our message space may not realistically resemble $\Zp$, for example if the information we want to encode is a bunch of integer values, and we want to compute the product of these integers, we expect the result of performing the encrypted operation to be the true product, even if it exceeds $P$. As soon as the results of computations exceed $P$, the scheme fails to return the correct value to the user, so practically speaking, we want our messages to be much smaller than $P$, which is in turn much smaller than $\prod p_i$. Precisely, this means that if $E := \log_{(K+1)P}\prod p_i$, then $|\M|<\sqrt[E]{P}$ guarantees that products of messages will always decrypt properly, since $E$ is the number of allowed multiplications from above.
+Which option should we take in practice? In increasing the number of operations allowed, we certainly do not want to negatively impact the security or flexibility of our scheme, so decreasing $K$ or $P$ is not ideal. It would seem, then, that increasing $N$ might be provide the greatest benefit: increasing the number of multiplications (by increasing the product $\prod p_i$) while also increasing the complexity of brute-force search. Analyzing this problem further would be an interesting application of the implementations outlined in chapter~\ref{chap:implementation}.
 
 \
+
+An additional concern is that our message space may not realistically resemble $\Zp$, for example if the information we want to encode is a collection of integer values, and we want to compute the product of these integers, we expect the result of performing the encrypted operation to be the true product, even if it exceeds $P$. As soon as the results of computations exceed $P$, the scheme fails to return the correct value to the user, so practically speaking, we want our messages to be much smaller than $P$, which is in turn much smaller than $\prod p_i$. Precisely, this means that requiring that any message $m$ satisfy $m<\sqrt[M]{P}$ guarantees that products of messages will always decrypt properly, since $M$ is the number of allowed multiplications from above. In practice, this means that if we want our operations to remain in the integers, we should set $\M = \Z_{<\sqrt[M]{P}}$.
+
+\
+
+A desirable aspect of any cryptosystem is that the size of any ciphertext is not excessively large relative to the size of its corresponding plaintext. In this system, including the considerations in the paragraph above, a message $m$ has worst-case size $|m|=\sqrt[M]{P}$, while a ciphertext has size
+\begin{align*}
+\sum_{i=1}^N\left|(\Z/p_iq_i\Z)\right| &= \sum_{i=1}^Np_iq_i
+\end{align*}
+Note that if we did not reduce each component modulo $p_iq_i$, our ciphertexts could grow quite rapidly. Also, since we're reducing modulo $p_iq_i$, we do not experience any ciphertext expansion when we apply circuits to ciphertexts. [[[[[According to (CITATION OF P.C.R), this scheme is called \emph{compact}, meaning that there is a fixed polynomial bound on the size of ]]]]]
 
 \section{Using multivariate polynomial rings}
 \label{sec:multicrypt}
 
-\
+Another approach to homomorphic encryption is to use the properties of arithmetic in polynomial rings. The ring structure essentially guarantees that if our encryption involves only arithmetic operations, it will be homomorphic. Perhaps the most natural thing to try in this setting is the following algorithm: choose a principal ideal $(f)\subset \Zx$ and encrypt an integer message $m$ by adding a random element $af\in (f)$, so $e(m) = m+af$. Then to decrypt, we simply reduce modulo the polynomial $f$. This process is homomorphic because ideals are closed under addition and multiplication:
+\[e(m_1)+e(m_2) = m_1+m_2+(a_1+a_2)f= e(m_1+m_2)\]
+and
+\[e(m_1)e(m_2) = m_1m_2+(m_2a_1+m_1a_2+a_1a_2)f = e(m_1m_2)\]
+Note that our definition of equality above is somewhat loose; since $e(m_1+m_2)$ encrypts by choosing a \emph{random} multiple of $f$, it may not be exactly $(a_1+a_2)f$ (and likewise for the case of multiplication). The notion of equality we adopt, then, is a notion of coset equality: $e(m_1)+e(m_2)$ is in the same coset of $I$ as $e(m_1+m_2)$, so they will decrypt identically, and the same is true for $e(m_1)e(m_2)$ and $e(m_1m_2)$.
 
-Another approach to homomorphic encryption is to use the properties of arithmetic in polynomial rings. The ring structure essentially guarantees that if our encryption involves only arithmetic operations, it will be homomorphic. Perhaps the most natural thing to try in this setting is the following algorithm: choose a principal ideal $(f)\subset \Zx$ and encrypt an integer message $m$ by adding a random element $af\in (f)$, so $e(m) = m+af$. Then to decrypt, we simply reduce modulo the polynomial $f$. This process is homomorphic because ideals are closed under addition and multiplication: \[e(m_1)+e(m_2) = m_1+m_2+(a_1+a_2)f= e(m_1+m_2)\] and \[e(m_1)e(m_2) = m_1m_2+(m_2a_1+m_1a_2+a_1a_2)f = e(m_1m_2)\] Note that our definition of equality above is somewhat loose; since $e(m_1+m_2)$ encrypts by choosing a \emph{random} multiple of $f$, it may not be exactly $(a_1+a_2)f$ (and likewise for the case of multiplication). The notion of equality we adopt, then, is a notion of coset equality: $e(m_1)+e(m_2)$ is in the same coset of $I$ as $e(m_1+m_2)$, so they will decrypt identically, and the same is true for $e(m_1)e(m_2)$ and $e(m_1m_2)$.
-
-While this scheme illustrates the ideas we will use later, it is not very secure on its own. For example, suppose an eavesdropper, Eve, asks us to encrypt $m=0$ several times. The resulting ciphertexts would be a collection \[\left\{ a_1f_1, a_2f_2,\dots ,a_nf_n\right\}\] Now, if Eve takes the greatest common divisor of the elements in this collection, there is a very high chance that the result will be $f$ itself or a small multiple of $f$. With $f$ in hand, Eve could then decrypt any message she pleased, and the scheme would be compromised.
-
-\
+While this scheme illustrates the ideas we will use later, it is not very secure on its own. For example, suppose an eavesdropper, Eve, asks us to encrypt $m=0$ several times. The resulting ciphertexts would be a collection
+\[\left\{ a_1f_1, a_2f_2,\dots ,a_nf_n\right\}\]
+Now, if Eve takes the greatest common divisor of the elements in this collection (note that this is very similar attack employed to break the toy example in section~\ref{sec:intro_to_hom_enc}), there is a very high chance that the result will be $f$ itself or a small multiple of $f$. With $f$ in hand, Eve could then decrypt any message she pleased, and the scheme would be compromised.
 
 The scheme above was easily broken because it relied on a fairly easy problem: given a collection of polynomials in a principal ideal, find a generator for the ideal. This is easily found because we can compute fairly efficiently the greatest common divisor of two polynomials in $\Z[x]$. This is a basic case of a more general problem:
 
-\
+\begin{definition}[Ideal Membership Problem (IMP)]
+Given a ring $R$, a set of elements $\{r_1,\dots,r_n\}\in R$, and an element $f\in R$, determine whether $f\in (r_1,\dots,r_n) \subset R$.
+\end{definition}
 
-\textbf{Ideal Membership Problem:} Given a ring $R$, a set of elements $\{r_1,\dots,r_n\}\in R$, and an element $f\in R$, determine whether $f\in (r_1,\dots,r_n) \subset R$.
-
-\
-
-If the structure of $R$ is simple, then this problem is correspondingly easy, as we saw above in the case of our set of generators being multiples of a single polynomial $f\in \Zx$. The ease of solution here comes from the fact that greatest common divisors are fairly easy to compute over $\Zx$; with the greatest common divisor of our generators available, we can easily test whether the gcd divides any other encryption to see if it is an encryption of zero. However, if we look instead at multivariate polynomial rings such as $\Zxy$ or $\Zpxy$, the problem might not be so simple. It is in this spirit that we formulate the following scheme:
+If the structure of $R$ is simple, then this problem is correspondingly easy, as we saw above in the case of our set of generators being multiples of a single polynomial $f\in \Zx$. The ease of solution here comes from the fact that greatest common divisors are fairly easy to compute over $\Zx$; with the greatest common divisor of our generators available, we can easily reduce further encryptions by the common divisor to reveal their corresponding plaintexts. However, if we look instead at multivariate polynomial rings such as $\Zxy$ or $\Zpxy$, the problem might not be so simple. GIVE EXAMPLE OF THE NECESSITY OF ORDERING MONOMIALS. It is with this motivation that we formulate the following scheme:
 
 \
 
@@ -336,7 +437,7 @@ If the structure of $R$ is simple, then this problem is correspondingly easy, as
 The scheme goes as follows:
 
 \begin{itemize}
-\item Key generation
+\item Key generation ($KG$)
 \begin{enumerate}
 \item Pick a general degree bound $D$ and a coefficient bound $B$
 \item Pick a random number $z_0 < B$
@@ -346,8 +447,6 @@ The scheme goes as follows:
 \item Return private key $(f,g,z_0)$
 \end{enumerate}
 
-\
-
 \item Encryption ($e$)
 \begin{enumerate}
 \item Pick a message $m\in \M := \Z$
@@ -355,16 +454,17 @@ The scheme goes as follows:
 \item return $e(m) := m+af+bg$
 \end{enumerate}
 
-\
-
 \item Decryption ($d$)
 \begin{enumerate}
 \item Evaluate an encryption at $z_0$
 \item Reduce the result modulo $f(x,z_0)$, a single-variable polynomial, and return the result
 \end{enumerate}
-\end{itemize}
 
-\
+\item Addition of ciphertexts ($+$)
+
+\item Multiplication of ciphertexts ($\cdot$)
+
+\end{itemize}
 
 \subsection{Explanation}
 
@@ -431,12 +531,13 @@ Beyond theoretical formulation, it is important to see how these schemes might p
 A significant drawback of using our choice-based encryption scheme for the manipulation of statistics is made apparent when we consider taking the standard deviation of many numbers. This requires being able to make a large number of well-defined multiplications, which may be impossible, especially if the numbers in question are large. Problems like this may be more suited to our multivariate scheme, which can make arbitrary numbers of well-defined multiplications. We may lose efficiency, but in computations that require correctness over
 
 \chapter{Implementation}
+\label{chap:implementation}
 
 \
 
 \chapter{Appendix}
 
-\section{Common notation}
+\section{Common notation and terminology}
 
 We recall in this section some commonly used notation used throughout the preceding pages:
 
@@ -444,6 +545,35 @@ We recall in this section some commonly used notation used throughout the preced
 \item $\Z$ --- the ring of integers, i.e. $\{\dots,  -2, -1, 0, 1, 2, \dots\}$
 \item $\Zp$ --- the ring of integers modulo $p$, i.e. the set of equivalence classes $\{\bar{0}, \bar{1}, \dots , \bar{(p-1)}\}$
 \item $R[x_1, \dots ,x_n]$ --- the ring of polynomials in the variables $x_1,\dots, x_n$ with coefficients in the ring $R$; used most often above is the ring of polynomials with integer coefficients, $\Z[x_1,\dots,x_n]$
+\item A \emph{commutative diagram} is a visual representation of a collection of maps which can be applied in multiple ways to get the same result. For example, if we have the maps 
+\begin{align*}
+f: & \ \R^2 \lra \R\\
+&(x,y)\mapsto x+y\\
+\\
+g : & \ \R^2 \lra \R^2\\
+&(x,y)\mapsto (2x,2y)\\
+\\
+h : & \ \R^2\lra \R^2\\
+&(x,y)\mapsto (\frac{x}{2},\frac{y}{2})
+\end{align*}
+the following commutative diagram represents the fact that adding two numbers is the same as first multiplying both by $2$, adding them, and then dividing the product by $2$:
+
+
+\begin{center}
+$\begin{tikzpicture} \label{comm_diagram_ex}
+\node (m) {$(x,y)$};
+\node (fm) [right=2cm of m] {$x+y$};
+\node (em) [above=2cm of m] {$(2x,2y)$};
+\node (fem) [above=2cm of fm] {$2x+2y$};
+\node(circarr) [above right=1cm of m]{$\circlearrowright$};
+\draw[->] (m) to node {$f$} (fm);
+\draw[->] (fem) to node {$h$} (fm);
+\draw[->] (m) to node {$g$} (em);
+\draw[->] (em) to node {$f$} (fem);
+\end{tikzpicture}$
+\end{center}
+
+
 \end{itemize}
 
 \section{Common Attacks}
@@ -471,6 +601,10 @@ Cite Donald Knuth, Art of Computer Programming, Addison-Wesley Publishing Compan
 \
 
 Cite Gentry, Fellows and Koblitz
+
+\
+
+Page 38 of HPS
 
 
 

@@ -141,28 +141,39 @@ void KEYGEN(array &p, array &q, bigint &P, bigint &M, bigint &K, int &N, int cle
         M=RAND(100,1);
     if(K==0)
         K=RAND(30,10);
+    if(N==0)
+        N=128;
         
     bigint prodplb(POW((K+1)*P,M));
-    cout << "prodplb = " << prodplb;
-    NWLN;
+    //cout << "prod(p_i) lower bound = " << prodplb << "\n";
+    bigint eachpi(NTHROOT_CEIL(prodplb,N));
         
     //assume input arrays are empty
     int i;
     bigint nwp, nwq;
     for(i=0;i<N;i++)
     {
-        nwp=NEXTPRIME(RAND(1000000,10001));
+        nwp=NEXTPRIME(RAND(2*eachpi,eachpi));
+        int ctr=2;
         while(IN(p,nwp))
-            nwp=NEXTPRIME(RAND(1000000,10001));
+        {
+            ctr++;
+            nwp=NEXTPRIME(RAND(ctr*eachpi,eachpi));
+        }
         p.append(nwp);
         
-        nwq=NEXTPRIME(RAND(1000000,10001));
+        ctr=2;
+        nwq=NEXTPRIME(RAND(2*eachpi,eachpi));
         while(IN(q,nwq))
-            nwq=NEXTPRIME(RAND(1000000,10001));
+        {
+            ctr++;
+            nwq=NEXTPRIME(RAND(ctr*eachpi,eachpi));
+        }
         q.append(nwq);
     }
     bigint prodp=p.prod();
-    P=NEXTPRIME(RAND(10000,1001));
+    //cout << "prod(p_i) =             " << prodp << "\n";
+    //P=NEXTPRIME(RAND(10000,1001));
 }
 void KEYGEN(array &p, array &q, bigint &P, int N, int cleararrs)
 {
@@ -193,7 +204,40 @@ void KEYGEN(array &p, array &q, bigint &P)
 {
     KEYGEN(p,q,P,10,0);
 }
-
+array ENCRYPT(bigint m, array p, array q, bigint P, bigint K, int check, int print)
+{
+    if(print)
+    {
+        cout << "scheme: e(m) = [MOD(m + a[i]*p[i]+K*P , p[i]*q[i])]\n";
+        NWLN;
+    }
+    int N=p.get_len();
+    int i;
+    if(check)
+    {
+        assert(N==p.get_len());
+        assert(N==q.get_len());
+    }
+    bigint prodp=p.prod();
+    bigint k=prodp/P; // # times P goes into prodp
+    if(print)
+    {
+        printinfo(k,"prodp/P");
+        NWLN;
+    }
+    if(print)
+    {
+        printinfo(K,"K");
+        NWLN;
+    }
+    array a(RANDARR(N));
+    array ret;
+    for(i=0;i<N;i++)
+    {
+        ret.append(MOD(m+a[i]*p[i]+K*P,p[i]*q[i]));
+    }
+    return ret;
+}
 array ENCRYPT(bigint m, array p, array q, bigint P, int check, int print)
 {
     if(print)
@@ -369,6 +413,18 @@ llist MULTICRYPT_ENCRYPT(bigint m, llist f, llist g, int deg, bigint coeff_size)
     llist b(RAND_MVAR_POLY(deg,coeff_size));
     ret=M+a*f+b*g;
     return ret;
+}
+
+bigint NTHROOT_CEIL(bigint b, int n)
+{
+    //returns ceiling of the nth root of b
+    bigint r;
+    int t;
+    t=mpz_root(r.get_mpz_t(),b.get_mpz_t(),n);
+    if(t)
+        return r;
+    else
+        return r+1;
 }
 
 bigint SQRT(bigint b)

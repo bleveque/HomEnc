@@ -57,6 +57,12 @@ void functest(void)
     b=COMPWISEPROD(a,c);
     b.printinfo("b = a*c");
     
+    // testinfo("a*c");
+    // a.printinfo("a");
+    // b.printinfo("b");    
+    // b=a*c;
+    // b.printinfo("b = a*c");
+    
     testinfo("appendv");
     bigint A[10]={3,4,5,6,7,8,9,10,1,2};
     d.appendv(A,10);
@@ -194,6 +200,125 @@ int ENCRYPTtest(void)
             cout << "well-defined up to " << i-1 << " multiplications\n\n\n";
         }
     }
+}
+
+int newENCRYPTtest(void)
+{
+    cout << "\n\nnewENCRYPTtest" << "\n==========================================\n";
+    array p,q,pq;
+    bigint P(0);
+    bigint M(20);
+    bigint K(0);
+    int N=60;
+    int cleararrs=0;
+    KEYGEN(p,q,P,M,K,N,cleararrs);
+    pq=COMPWISEPROD(p,q);
+    printinfo(N,"N");
+    NWLN;
+    p.printinfo("p");
+    NWLN;
+    q.printinfo("q");
+    NWLN;
+    pq.printinfo("pq");
+    NWLN;
+    cout << "P = " << P << "\n";
+    NWLN;
+    assert(P<p.prod());
+    
+    bigint m(RAND(P));
+    array enc(ENCRYPT(m,p,q,P,K,1,0));
+    cout << "enc = ";
+    enc.printr();
+    NWLN;
+    bigint dec(DECRYPT(enc,p,P));
+    cout << "dec = " << dec << "\n";
+    cout << "m = " << m << "\n";
+    cout << "dec = m?  ";
+    if(dec==m)
+        cout << "yes\n\n\n";
+    else
+        cout << "no\n\n\n";
+        
+    cout << "CIRCUIT TEST\n===============================\n";
+    bigint m2(RAND(1000));
+    array enc2(ENCRYPT(m2,p,q,P,K,1,0));
+    int i=1, well_def=1;
+    while(well_def)
+    {
+        array circ;
+        circ.append(RAND(100000,1000));
+        circ.append(i);
+        array applied_enc(APPLYCIRC_ENC_MODpq(circ,enc,enc2,pq));
+        bigint decapplied(DECRYPT(applied_enc,p,P));
+        bigint applied_m=MOD(APPLYCIRC_M(circ,m,m2),P);
+        cout << "test " << i << ": " << decapplied << " ?= " << applied_m;
+        if(decapplied==applied_m)
+        {
+            //cout << "Applying circuit is well-defined with " << i << " multiplications\n";
+            cout << "    yes\n";
+            i++;
+        }
+        else
+        {
+            cout << "    no\n";
+            well_def=0;
+            cout << "well-defined up to " << i-1 << " multiplications\n\n\n";
+        }
+    }
+}
+
+void CBE_test(void)
+{
+    int N;
+    string input;
+    cout << "Enter N: ";
+    getline(cin,input);
+    stringstream(input) >> N;
+    cout << "Enter P: ";
+    getline(cin,input);
+    bigint P(input);
+    cout << "Enter K: ";
+    getline(cin,input);
+    bigint K(input);
+    cout << "Enter M: ";
+    getline(cin,input);
+    bigint M(input);
+    array p, q;
+    array pq;
+    KEYGEN(p,q,P,M,K,N,0);
+    p.printinfo("  p");
+    q.printinfo("  q");
+    pq=COMPWISEPROD(p,q);
+    bigint prodp(p.prod());
+    cout << "  prod(p_i) = " << prodp << "\n";
+    NWLN;
+    cout << "Enter a message m1 <" << P << ": ";
+    getline(cin,input);
+    bigint m1(input);
+    array enc1(ENCRYPT(m1,p,q,P,K,1,0));
+    enc1.printinfo("  e(m1)");
+    cout << "Enter a message m2 <" << P << ": ";
+    getline(cin,input);
+    bigint m2(input);
+    array enc2(ENCRYPT(m2,p,q,P,K,1,0));
+    enc2.printinfo("  e(m2)");
+    cout << "Enter a message m3 <" << P << ": ";
+    getline(cin,input);
+    bigint m3(input);
+    array enc3(ENCRYPT(m3,p,q,P,K,1,0));
+    enc3.printinfo("  e(m3)");
+    cout << "  Our circuit C is m1*m2+m3\n";
+    array Cencs(ARRMODARR(COMPWISEPROD(enc1,enc2)+enc3,pq));
+    Cencs.printinfo("  C(e(m1),e(m2),e(m3))");
+    bigint dec(DECRYPT(Cencs,p,P));
+    bigint cms(MOD(m1*m2+m3,P));
+    cout << "  d(C(e(m1),e(m2),e(m3))) = " << dec << "\n";
+    cout << "  C(m1,m2,m3) = " << cms << "\n";
+    cout << "  equal? ";
+    if(cms==dec)
+        cout << "yes\n";
+    else
+        cout << "no\n";
 }
 
 void user_encryption_test(void)
@@ -357,14 +482,14 @@ void grob_gens(int deg, bigint log_coeff_size, int num_gens)
 int main(int argc, char ** argv)
 {
     srand(time(NULL));
-    array p;
-    array q;
-    bigint P(0);
-    bigint M(0);
-    bigint K(0);
-    int N=0;
-    int cleararrs=0;
-    KEYGEN(p,q,P,M,K,N,cleararrs);
+    // array p;
+    // array q;
+    // bigint P(0);
+    // bigint M(0);
+    // bigint K(0);
+    // int N=0;
+    // int cleararrs=0;
+    // KEYGEN(p,q,P,M,K,N,cleararrs);
     char * arg=argv[1];
     if(arg==((string) "func"))
     {
@@ -378,6 +503,14 @@ int main(int argc, char ** argv)
     else if(arg==((string) "multi"))
     {
         llisttest();
+    }
+    else if(arg==((string) "nEt"))
+    {
+        newENCRYPTtest();
+    }
+    else if(arg==((string) "CBE_test"))
+    {
+        CBE_test();
     }
     else if(arg==((string) "grob"))
     {
