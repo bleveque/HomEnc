@@ -342,7 +342,17 @@ llist RAND_MVAR_POLY(int totdeg, bigint coeffbd)
 {
     int i,j;
     llist ret;
-    int xdeg=rand()%(totdeg-1)+1;
+    int xdeg;
+    if(totdeg>1)
+        xdeg=rand()%(totdeg-1)+1;
+    else
+    {
+        int tst=rand()%2;
+        if(tst)
+            xdeg=1;
+        else
+            xdeg=0;
+    }
     int ydeg=totdeg-xdeg;
     for(i=0;i<=xdeg;i++)
     {
@@ -350,10 +360,10 @@ llist RAND_MVAR_POLY(int totdeg, bigint coeffbd)
         {
             bigint coeff;
             int test=rand()%10;
-            if(test<5 && (!(i==xdeg && j==ydeg)))
+            if(test<5 && (!(i==xdeg && j==ydeg)) && (!(i==0 && j==0))) // made constant coefficients non-zero
                 coeff=bigint(0);
             else
-                coeff=RAND(coeffbd,coeffbd/bigint(2));
+                coeff=RAND(coeffbd,bigint(1));//coeffbd/bigint(2)); //used to be between bd and bd/2
             ret.insert(coeff,i,j);
         }
     }
@@ -375,13 +385,12 @@ void MULTICRYPT_KEYGEN(llist &f, llist &g, bigint &z0)
 void MULTICRYPT_KEYGEN(llist &f, llist &g, bigint &z0, int totaldeg, bigint coeff_size)
 {
     //generate random polynomials f, g1, set g=g1*(y-z0)
-    //totaldeg is halved below since it becomes the degree of both x and y in RAND_MVAR_POLY
     z0=RAND(coeff_size,coeff_size/2);
     f=RAND_MVAR_POLY(totaldeg,coeff_size);
     llist g1(RAND_MVAR_POLY(totaldeg-1,coeff_size));
-    llist g2y;
-    g2y.insert(1,0,1);
-    g2y.insert(-z0,0,0);
+    llist g2y; // will be (y-z0)
+    g2y.insert(1,0,1); // term: y
+    g2y.insert(-z0,0,0); // term: -z0
     g=g1*g2y;
 }
 

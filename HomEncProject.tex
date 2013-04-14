@@ -61,6 +61,7 @@
 \newcommand{\Ap}{A_{\mathfrak{p}}}
 \newcommand{\OK}{\mathcal{O}_k}
 \newcommand{\Zx}{\mathbb{Z}[x]}
+\newcommand{\Zy}{\mathbb{Z}[y]}
 \newcommand{\Zxn}{\mathbb{Z}[x_1,\ldots,x_n]}
 \newcommand{\Zxy}{\mathbb{Z}[x,y]}
 \newcommand{\Zpxy}{\mathbb{Z}/p\mathbb{Z}[x,y]}
@@ -324,6 +325,7 @@ We now show that this is the case for any $M$-circuit. Consider the growth of th
 
 
 \subsection{Example of choice-based encryption}
+\label{sec:cbe_example}
 
 To illustrate the concepts above, we will carry out a numerical example of encryption, application of circuits, and decryption. For this purpose, we will take our keys to be quite small, letting $N=2$, $M=3$, $K=3$, and $P=7$. Running the key generation function gives us
 \begin{align*}
@@ -449,7 +451,7 @@ The scheme goes as follows:
 \item Pick a degree bound $D$ and a coefficient bound $B$
 \item Pick a random number $z_0 < B$
 \item Pick a random polynomial $f$ with total degree less than or equal to $D$ and coefficients less than $B$
-\item Pick a random polynomial $g'$ of total degree less than or equal to $D-1$
+\item Pick a random polynomial $g'$ of total degree less than or equal to $D-1$ and coefficients less than $B$
 \item Set $g := (y-z_0)g'$
 \item Return private key $(f,g,z_0)$
 \end{enumerate}
@@ -527,9 +529,74 @@ At no point in the proof above does the size of either message affect the abilit
 
 
 \subsection{Example of multivariate encryption}
+\label{sec:mv_example}
+We will now work out an example using the multivariate encryption scheme above. Let us choose $D=2$ and $B=10$. Running the key generation step, we get
+\begin{align*}
+z_0 &= 6\\
+f &= 4xy+6y+1\\
+g &= y^2+3y-54
+\end{align*}
+Note that it is coincidence only that $g$ is a polynomial in $\Zy$. Also, its constant coefficient is larger than our coefficient bound! The reason for this transgression is that $g$ is generated as a product of a random polynomial (which does adhere to the degree bound) and the polynomial $(y-z_0)$, so $g$ itself may have coefficients as large as $B^2$.
+
+Now, suppose we want to encrypt $m=1024$. Running our encryption procedure with random polynomials
+\begin{align*}
+a &= 5xy+x+y+5\\
+b &= 3xy+8x+3y+1
+\end{align*}
+we get
+\begin{align*}
+e(m) &= m+af+bg\\
+&= 20x^2y^2 + 3xy^3 + 4x^2y + 75xy^2 + 3y^3 - 107xy + 52y^2 - 431x - 122y + 975
+\end{align*}
+Now, we run our decryption circuit by first plugging in $z_0=6$, which gives
+\begin{align*}
+e(m)(x,z_0) &= 20x^2(6^2) + 3x(6^3) + 4x^2(6) + 75x(6^2) + 3(6^3) - 107x(6) + 52(6^2) - 431x - 122(6) + 975\\
+&= 744x^2 + 2275x + 2763
+\end{align*}
+Finally, we reduce modulo $f(x,z_0)$ to get
+\begin{align*}
+e(m)(x,z_0)\pmod{f(x,z_0)} &= (744x^2 + 2275x + 2763) \pmod{24x + 37} \\
+&=1024
+\end{align*}
+This is indeed our original message, which shows that encryption/decryption is well-defined for this example.
+
+We now give an example of a circuit applied to three encryptions (in fact, the same circuit as we used in section~\ref{sec:cbe_example}), namely $C(x_1,x_2,x_3)=x_1x_2+x_3$. Suppose we want to encrypt $m_1=123$, $m_2=234$, and $m_3=345$ and apply the circuit $C$ to the encryptions. We show this process below (omitting some computations for brevity). First, running key generation gives
+\begin{align*}
+f &= 7xy+5x+6y+5\\
+g &= 2xy-14x+3y-21\\
+z0 &= 7
+\end{align*}
+Now, encrypting our messages gives:
+\begin{align*}
+e(m_1) &= 42x^2y^2-42x^2y-36x^2+45xy^2-42xy-137x+51y+1\\
+e(m_2) &= 24x^2y^2-60x^2y+34xy^2- 44xy+2x+6y^2+47y+222\\
+e(m_3) &= 42x^2y^2-15x^2y+45x^2+62xy^2-78xy+57x+21y^2-46y+343\\
+\end{align*}
+Applying the circuit $C$ to these encryptions gives
+\begin{align*}
+C(e(m_1),e(m_2),e(m_3)) &= e(m_1)e(m_2)+e(m_3)\\
+&= 1008x^4y^4-3528x^4y^3+1656x^4y^2+2160x^4y+2508x^3y^4-6984x^3y^3-\\
+& \ \ \ \ \ \ 60x^3y^2+9720x^3y-72x^3+1782x^2y^4-462x^2y^3+1420x^2y^2-\\
+& \ \ \ \ \ \ 5147x^2y-8221x^2+270xy^4+3597xy^3+5046xy^2-15783xy-\\
+& \ \ \ \ \ \ 30355x+306y^3+2424y^2+11323y+565
+\end{align*}
+As a brief aside, note that in this scheme, ciphertexts grow quite quickly as we apply circuits. We will discuss this in more depth in section~\ref{sec:mv_hom_analysis} below. Now, decrypting the result above gives
+\begin{align*}
+d(C(e(m_1),e(m_2),e(m_3))) &= C(e(m_1),e(m_2),e(m_3))(x,z_0) \pmod{f(x,z_0)}\\
+&= 29127
+\end{align*}
+Now, applying $C$ to the original messages gives
+\begin{align*}
+C(m_1,m_2,m_3) &= m_1m_2+m_3\\
+&= 29127
+\end{align*}
+This shows that applying a circuit is well-defined for this example.
 
 \subsection{Practical analysis of homomorphicity}
-Unlike the choice-based scheme above, this scheme as presented suffers from significant ciphertext expansion as 
+\label{sec:mv_hom_analysis}
+Unlike the choice-based scheme above, this scheme as presented suffers from significant ciphertext expansion as circuits with a large number of multiplications are applied. Sums of ciphertexts do not grow in size too quickly, because when two ciphertexts are added, the degree of the result will not have grown. The coefficients roughly double in an addition, but this is negligible when compared to the result of a multiplication. When two ciphertexts (of comparable degree) are multiplied, the total degree of the result is roughly twice the total degree of the initial ciphertexts. Let $d$ be the maximum of the maximum $x$-degree and $y$-degree of the product. Since we are working with two variables, there are roughly $d^2$ possible terms, each having coefficients larger than those in the initial ciphertexts. For example, the coefficient of the highest degree term will be the product of the corresponding highest-degree coefficients of the original ciphertexts, and the coefficients of smaller degree terms will be sums of such products, leading to very fast coefficient growth.
+
+There are then two issues with homomorphic operations in this scheme: coefficient growth and degree growth. In order to combat coefficient growth, we could imagine setting up our scheme with $\mathcal{C} = \Zpxy$ rather than $\mathcal{C} = \Zxy$
 
 
 \subsection{Security}
@@ -637,6 +704,10 @@ Cite Gentry, Fellows and Koblitz
 \
 
 Page 38 of HPS
+
+\
+
+Changed RAND to RAND2 after a bunch of tests already computed. Initially, we were using just products of random numbers to generate new random numbers, but there was an issue that if any of these random numbers were even, all subsequent ones would be as well, implying that most coefficients were probably even (since the bounds we use are powers of two). It is changed to increase by multiplying by a rand and also adding one. Also changed it to make constant coefficients non-zero, since constant coeffs help to hide the message. Also changed the coeffs of random polys to between coeffbd and 1 rather than coeffbd and coeffbd/2.
 
 
 

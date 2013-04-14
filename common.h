@@ -41,6 +41,7 @@ bigint POWMOD(bigint base, bigint exp, bigint m);
 bigint RAND();
 bigint RAND(bigint bound);
 bigint RAND(bigint bound, bigint lbound);
+bigint RAND2(bigint bound, bigint lbound);
 bigint RANDODD();
 bigint RANDODD(bigint bound, bigint lbound);
 bigint XGCD(bigint a, bigint b, bigint &ainv, bigint &binv);

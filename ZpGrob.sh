@@ -1,29 +1,48 @@
-#
+# 
 # read file from first input and write singular and M2 results
 # the first input is the singular file to be read
 # the second is the M2 file to be read
-#
+# we use the primes 11 (smallest prime greater than 10), 101 (smallest prime greater than 100),
+# 1009 (smallest prime greater than 1000), and 32749 (largest prime handled by Macaulay2 for a
+# finite field Z/p, according to the documentation at
+# http://www.math.uiuc.edu/Macaulay2/doc/Macaulay2-1.4/share/doc/Macaulay2/BeginningMacaulay2/html/)
+# 
 
-echo 'F=GF(value(get("/Users/bleveque/UTRA/HomEnc/Prime.txt")),Variable=>a)
-R=F[x,y]
-I=ideal(value(get("/Users/bleveque/UTRA/HomEnc/Polys.txt")))
-t1=cpuTime();a=gb(I);t2=cpuTime();
-g="/Users/bleveque/UTRA/HomEnc/M2Gens.txt"
-g << gens(a) << endl << close
-T=(t2-t1)
-value(get("/Users/bleveque/UTRA/HomEnc/M2Params.txt"))
-f="/Users/bleveque/UTRA/HomEnc/M2ZpResults.txt"
-f << get(f)
-f << totalDegree << "|" << sizeCoeffs << "|" <<  numPolysGiven << "|" << T << "|" << endl << close
-1+' > M2test.txt
-M2 --stop --no-backtrace M2test.txt
-# 
-# polys=`cat /Users/bleveque/UTRA/HomEnc/Polys.txt`
-# 
-# echo 'ring r=integer,(x,y),dp;ideal I=(' > SingularTest.txt
-# echo "$polys" >> SingularTest.txt
-# echo ');I;int t=timer;groebner(I);int T=timer-t;string ST=string(T);
-# string params=read("/Users/bleveque/UTRA/HomEnc/SingularParams.txt");
-# write("/Users/bleveque/UTRA/HomEnc/SingularResults.txt",params+ST+"|");
-# quit;' >> SingularTest.txt
-# singular SingularTest.txt --ticks-per-sec 1000
+make
+for ((i=5;i<=5;i+=1));do                  # degree of f,g
+	for ((j=20;j<=20;j+=4));do            # log-size of the coefficients of f,g
+		for ((k=2;k<=2;k+=8));do         # number of polynomials fed to the gb function
+			for p in 11 101 1009 32749;do # primes we use
+				for ((l=0;l<5;l++));do    # five values to get a decent average
+					echo degree=$i, log-size=$j, numpolys=$k, prime=$p, iteration=$l
+					./enc grob $i $j $k
+					echo totalDegree=$i > ./ZpM2Params.txt
+					((sizecoeffs=2**j))
+					echo sizeCoeffs=$sizecoeffs >> ./ZpM2Params.txt
+					echo numPolysGiven=$k >> ./ZpM2Params.txt
+					echo p=$p >> ./ZpM2Params.txt
+					echo 'value(get("./ZpM2Params.txt"))
+					R=ZZ/p[x,y]
+					I=ideal(value(get("./Polys.txt")))
+					t1=cpuTime();a=gb(I);t2=cpuTime();
+					g="./ZpM2Gens.txt"
+					g << gens(a) << endl
+					T=(t2-t1)
+					g << totalDegree << "|" << sizeCoeffs << "|" <<  numPolysGiven << "|" << p << "|" << T << "|" << endl << endl << close
+					f="./ZpResults.txt"
+					f << get(f)
+					f << totalDegree << "|" << sizeCoeffs << "|" <<  numPolysGiven << "|" << p << "|" << T << "|" << endl << close
+					1+' > ZpM2test.txt
+					M2 --stop --no-backtrace ZpM2test.txt
+					sleep 1
+					echo ""
+				done
+			done
+		done
+	done
+done
+echo ""
+echo ""
+echo ""
+echo 'copy ZpResults.txt to backup file! run ./ZpCpres.sh'
+echo ""

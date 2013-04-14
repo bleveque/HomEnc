@@ -89,6 +89,15 @@ bigint POWMOD(bigint base, bigint exp, bigint m)
 bigint RAND(bigint bound, bigint lbound)
 {
     assert(lbound<=bound);
+    bigint r(rand());
+    while(r<bound)
+        r=r*rand()+rand(); //want to avoid things like rand being a multiple of 5, so r will always be a multiple of 5 thereafter
+    return MOD(r,bound-lbound)+lbound;
+}
+
+bigint RAND2(bigint bound, bigint lbound)
+{//old version of RAND -- problem is that we're only using products of random numbers
+    assert(lbound<=bound);
     bigint r1(rand());
     bigint r2(rand());
     bigint r3(rand());

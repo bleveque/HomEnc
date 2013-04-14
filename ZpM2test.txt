@@ -1,0 +1,12 @@
+value(get("./ZpM2Params.txt"))
+					R=ZZ/p[x,y]
+					I=ideal(value(get("./Polys.txt")))
+					t1=cpuTime();a=gb(I);t2=cpuTime();
+					g="./ZpM2Gens.txt"
+					g << gens(a) << endl
+					T=(t2-t1)
+					g << totalDegree << "|" << sizeCoeffs << "|" <<  numPolysGiven << "|" << p << "|" << T << "|" << endl << endl << close
+					f="./ZpResults.txt"
+					f << get(f)
+					f << totalDegree << "|" << sizeCoeffs << "|" <<  numPolysGiven << "|" << p << "|" << T << "|" << endl << close
+					1+

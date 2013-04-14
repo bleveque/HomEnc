@@ -383,6 +383,79 @@ void user_encryption_test(void)
 	
 }
 
+void ME_test(void)
+{
+    string input;
+    cout << "Enter bound on deg of f and g:   ";
+    getline(cin,input);
+    int totdeg;
+    stringstream(input) >> totdeg;
+    cout << "Enter bound on coefficient size: ";
+    getline(cin,input);
+    bigint coeffsize(input);
+    llist f, g;
+    bigint z0;
+    MULTICRYPT_KEYGEN(f, g, z0, totdeg, coeffsize);
+    f.printinfo("  f");
+    g.printinfo("  g");
+    cout << "  z0 = " << z0 << "\n";
+    cout << "Enter a message m1: ";
+    getline(cin,input);
+    bigint m1(input);
+    llist enc1(MULTICRYPT_ENCRYPT(m1,f,g,totdeg,coeffsize));
+    enc1.printinfo("  e(m1)");
+    
+    cout << "Enter a message m2: ";
+    getline(cin,input);
+    bigint m2(input);
+    llist enc2(MULTICRYPT_ENCRYPT(m2,f,g,totdeg,coeffsize));
+    enc2.printinfo("  e(m2)");
+    
+    cout << "Enter a message m3: ";
+    getline(cin,input);
+    bigint m3(input);
+    llist enc3(MULTICRYPT_ENCRYPT(m3,f,g,totdeg,coeffsize));
+    enc3.printinfo("  e(m3)");
+    
+    cout << "  Our circuit C is m1*m2+m3\n";
+    
+    llist Cencs(enc1*enc2+enc3);
+    Cencs.printinfo("  C(e(m1),e(m2),e(m3))");
+    bigint dec(MULTICRYPT_DECRYPT(Cencs,f,g,z0));
+    bigint cms(m1*m2+m3);
+    cout << "  d(C(e(m1),e(m2),e(m3))) = " << dec << "\n";
+    cout << "  C(m1,m2,m3) = " << cms << "\n";
+    cout << "  equal? ";
+    if(cms==dec)
+        cout << "yes\n";
+    else
+        cout << "no\n";
+}
+
+void rmvarpolys(void)
+{
+    int cont=1;
+    string input;
+    while(cont)
+    {
+        cout << "Enter bound on deg of f and g:   ";
+        getline(cin,input);
+        int totdeg;
+        stringstream(input) >> totdeg;
+        
+        cout << "Enter bound on coefficient size: ";
+        getline(cin,input);
+        bigint coeffsize(input);
+        
+        llist a(RAND_MVAR_POLY(totdeg,coeffsize));
+        a.printinfo("poly");
+        
+        cout << "Enter 1 to generate another polynomial, 0 to exit: ";
+        getline(cin,input);
+        stringstream(input) >> cont;
+    }
+}
+
 void llisttest()
 {
     llist L;
@@ -482,6 +555,8 @@ void grob_gens(int deg, bigint log_coeff_size, int num_gens)
 int main(int argc, char ** argv)
 {
     srand(time(NULL));
+    for(int i=1;i<10;i++)
+        cout << "RAND(10,5) = " << RAND(bigint(10),bigint(10)/bigint(2)) << "\n";
     // array p;
     // array q;
     // bigint P(0);
@@ -511,6 +586,14 @@ int main(int argc, char ** argv)
     else if(arg==((string) "CBE_test"))
     {
         CBE_test();
+    }
+    else if(arg==((string) "ME_test"))
+    {
+        ME_test();
+    }
+    else if(arg==((string) "genpolys"))
+    {
+        rmvarpolys();
     }
     else if(arg==((string) "grob"))
     {

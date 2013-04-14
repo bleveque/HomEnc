@@ -1,0 +1,4 @@
+totalDegree=5
+sizeCoeffs=1048576
+numPolysGiven=2
+p=32749
