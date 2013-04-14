@@ -9,9 +9,9 @@
 # 
 
 make
-for ((i=5;i<=5;i+=1));do                  # degree of f,g
-	for ((j=20;j<=20;j+=4));do            # log-size of the coefficients of f,g
-		for ((k=2;k<=2;k+=8));do         # number of polynomials fed to the gb function
+for ((i=3;i<=6;i+=1));do                  # degree of f,g
+	for ((j=4;j<=20;j+=4));do            # log-size of the coefficients of f,g
+		for ((k=2;k<=20;k+=8));do         # number of polynomials fed to the gb function
 			for p in 11 101 1009 32749;do # primes we use
 				for ((l=0;l<5;l++));do    # five values to get a decent average
 					echo degree=$i, log-size=$j, numpolys=$k, prime=$p, iteration=$l
@@ -34,7 +34,7 @@ for ((i=5;i<=5;i+=1));do                  # degree of f,g
 					f << totalDegree << "|" << sizeCoeffs << "|" <<  numPolysGiven << "|" << p << "|" << T << "|" << endl << close
 					1+' > ZpM2test.txt
 					M2 --stop --no-backtrace ZpM2test.txt
-					sleep 1
+					# sleep 1
 					echo ""
 				done
 			done

@@ -555,8 +555,8 @@ void grob_gens(int deg, bigint log_coeff_size, int num_gens)
 int main(int argc, char ** argv)
 {
     srand(time(NULL));
-    for(int i=1;i<10;i++)
-        cout << "RAND(10,5) = " << RAND(bigint(10),bigint(10)/bigint(2)) << "\n";
+    //for(int i=1;i<10;i++)
+    //    cout << "RAND(10,5) = " << RAND(bigint(10),bigint(10)/bigint(2)) << "\n";
     // array p;
     // array q;
     // bigint P(0);

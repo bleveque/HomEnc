@@ -1,4 +1,4 @@
-totalDegree=5
+totalDegree=6
 sizeCoeffs=1048576
-numPolysGiven=2
+numPolysGiven=18
 p=32749
