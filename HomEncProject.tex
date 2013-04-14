@@ -596,11 +596,13 @@ This shows that applying a circuit is well-defined for this example.
 \label{sec:mv_hom_analysis}
 Unlike the choice-based scheme above, this scheme as presented suffers from significant ciphertext expansion as circuits with a large number of multiplications are applied. Sums of ciphertexts do not grow in size too quickly, because when two ciphertexts are added, the degree of the result will not have grown. The coefficients roughly double in an addition, but this is negligible when compared to the result of a multiplication. When two ciphertexts (of comparable degree) are multiplied, the total degree of the result is roughly twice the total degree of the initial ciphertexts. Let $d$ be the maximum of the maximum $x$-degree and $y$-degree of the product. Since we are working with two variables, there are roughly $d^2$ possible terms, each having coefficients larger than those in the initial ciphertexts. For example, the coefficient of the highest degree term will be the product of the corresponding highest-degree coefficients of the original ciphertexts, and the coefficients of smaller degree terms will be sums of such products, leading to very fast coefficient growth.
 
-There are then two issues with homomorphic operations in this scheme: coefficient growth and degree growth. In order to combat coefficient growth, we could imagine setting up our scheme with $\mathcal{C} = \Zpxy$ for some prime $p$ rather than $\mathcal{C} = \Zxy$. We will discuss the feasibility of this possibility in more depth in section~\ref{sec:mv_security} below.
+There are then two issues with homomorphic operations in this scheme: coefficient growth and degree growth. In order to combat coefficient growth, we could imagine setting up our scheme with $\mathcal{C} = \Zpxy$ for some prime $p$ rather than $\mathcal{C} = \Zxy$. We will discuss the feasibility of this possibility in more depth in section~\ref{sec:mv_security} below. To attempt to deal with degree growth, we could consider making an encryption of $m=0$ public knowledge. Then 
 
 
 \subsection{Security}
 \label{sec:mv_security}
+We now look at the security characteristics of this system. 
+
 
 \subsection{Generalizing}
 
@@ -712,6 +714,10 @@ Changed RAND to RAND2 after a bunch of tests already computed. Initially, we wer
 \
 
 32749 is the largest prime usable in M2 for polynomial rings over finite fields
+
+\
+
+Note that coeffsize doesn't matter so much for Z/pZ, since arithmetic is all Z/pZ
 
 \
 
