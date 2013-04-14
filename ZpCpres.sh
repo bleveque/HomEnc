@@ -1,2 +1,2 @@
 cp ZpResults.txt ZpResultsBackup.txt
-less ZpResultsBackup.txt
+wc -l ZpResultsBackup.txt

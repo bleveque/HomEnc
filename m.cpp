@@ -541,7 +541,7 @@ void grob_gens(int deg, bigint log_coeff_size, int num_gens)
     for(i=0;i<num_gens;i++)
     {//generate encryptions of zero
         llist enc=MULTICRYPT_ENCRYPT(bigint(0),f,g,deg,coeff_size);
-        cout << MULTICRYPT_DECRYPT(enc,f,g,z0);
+        assert(MULTICRYPT_DECRYPT(enc,f,g,z0)==0);
         if(file.is_open())
         {
             enc.print_to_file(&file);
