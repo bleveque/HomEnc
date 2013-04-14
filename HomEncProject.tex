@@ -409,6 +409,12 @@ A desirable aspect of any cryptosystem is that the size of any ciphertext is not
 \end{align*}
 Note that if we did not reduce each component modulo $p_iq_i$, our ciphertexts could grow quite rapidly. Also, since we're reducing modulo $p_iq_i$, we do not experience any ciphertext expansion when we apply circuits to ciphertexts. [[[[[According to (CITATION OF P.C.R), this scheme is called \emph{compact}, meaning that there is a fixed polynomial bound on the size of ]]]]]
 
+
+\subsection{Security}
+\label{sec:cbd_security}
+
+
+
 \section{Using multivariate polynomial rings}
 \label{sec:multicrypt}
 
@@ -439,7 +445,8 @@ The scheme goes as follows:
 \begin{itemize}
 \item Key generation ($KG$)
 \begin{enumerate}
-\item Pick a general degree bound $D$ and a coefficient bound $B$
+\item Set $\M := \Z$ and $\mathcal{C} := \Zxy$
+\item Pick a degree bound $D$ and a coefficient bound $B$
 \item Pick a random number $z_0 < B$
 \item Pick a random polynomial $f$ with total degree less than or equal to $D$ and coefficients less than $B$
 \item Pick a random polynomial $g'$ of total degree less than or equal to $D-1$
@@ -449,59 +456,84 @@ The scheme goes as follows:
 
 \item Encryption ($e$)
 \begin{enumerate}
-\item Pick a message $m\in \M := \Z$
+\item Pick a message $m\in \Z$
 \item Pick random polynomials $a$ and $b$ which respect the degree and coefficient bounds
-\item return $e(m) := m+af+bg$
+\item Return $e(m) := m+af+bg$
 \end{enumerate}
 
 \item Decryption ($d$)
 \begin{enumerate}
-\item Evaluate an encryption at $z_0$
+\item Evaluate the encryption at $z_0$
 \item Reduce the result modulo $f(x,z_0)$, a single-variable polynomial, and return the result
 \end{enumerate}
 
 \item Addition of ciphertexts ($+$)
+\begin{enumerate}
+\item Given two ciphertexts in $\Zxy$, their sum is simply their sum as multivariate polynomials
+\end{enumerate}
 
 \item Multiplication of ciphertexts ($\cdot$)
-
+\begin{enumerate}
+\item Given two ciphertexts in $\Zxy$, their product is simply their product as multivariate polynomials
+\end{enumerate}
 \end{itemize}
 
 \subsection{Explanation}
+Before analyzing the security properties of this scheme, we give a brief summary of its procedures. Key generation uses degree and coefficient bounds to create a secret root $z_0$ and secret polynomials $f$ and $g$, where $g$ vanishes on the line $y=z_0$. The fact that $g$ vanishes at $(x,z_0)$ for all $x\in \Z$ allows us to evaluate an encryption at $(x,z_0)$ to eliminate the $bg$ term completely. We are then in a single-variable setting (evaluating at $(x,z_0)$ is essentially a map $\Zxy \ra \Zx$), and can then easily reduce modulo $f(x,z_0)$. It is then easy to encrypt and decrypt, since we are only performing simple polynomial arithmetic, evaluating polynomials, and reducing modulo one-variable polynomials. We prove below that this gives a well-defined encryption scheme. We note also that the degree and coefficient bounds can be chosen as to make the underlying hard problem (discussed in section~\ref{sec:mv_security} below) difficult. In chapter~\ref{chap:implementation}, we discuss the problem of choosing appropriate bounds.
 
-We can use the results below to choose our degree and coefficient bounds appropriately to assure us of security. The idea behind our scheme is to give an encryption
-which is a multivariate polynomial (to increase the complexity of the Groebner basis computation), but which can be easily reduced during the decryption stage.
-This is accomplished by constructing our secret key $g$ such that it vanishes at the line $y=z_0$. We can then plug in $(x,z_0)$ to eliminate $g$, and we are left
-with $m+(af)(x,z_0)$. Reduction modulo single variable polynomials is easy to accomplish, so we can then reduce modulo $f(x,z_0)$ to retrieve $m$. Since reducing
-modulo a polynomial does not put any restrictions on the size of $m$ (as reducing modulo an integer would), $m$ can be arbitrarily large and still go through
-encryption and decryption in a well-defined manner.
+One benefit of using polynomials for encryption, as we will prove below, is that since our message is zero-degree (i.e. an integer), there is no limit on the number of additions and multiplications we can perform.
 
-\
 
 \subsection{Correctness of encryption/decryption}
+We will now prove the well-definition of encryption and decryption using 
 
-We have broached this subject above, and now we will prove it
 
-\
+\begin{thm}[Correctness of encryption/decryption for multivariate encryption] If $m\in \Z$, then $d(e(m)) = m$.
+\end{thm}
 
-\claim If $m\in \Z$, then $d(e(m)) = m$
+\begin{proof}
+First, encryption gives us
+\[e(m) = m+af+bg\]
+for some $a$ and $b$, where we know that $g(x,z_0)=0$ by construction. In step 1 of decryption, we evaluate at $(x,z_0)$, giving
+\[e(m)(x,z_0) = m+a(x,z_0)f(x,z_0)\]
+This is a single variable polynomial which can be reduced modulo the polynomial $f(x,z_0)$ (this is known to the decryptor, since $f$ and $z_0$ are both components of the secret key) to give $m$, since $m$ is simply a constant value and will not be affected by reduction by any non-constant polynomial. This proves correctness.
+\end{proof}
 
-\pf First, encryption gives us \[e(m) = m+af+bg\] for some $a$ and $b$, where we know that $g(x,z_0)=0$ by construction. In order to decrypt, we first evaluate at
-$(x,z_0)$, which gives \[e(m)(x,z_0) = m+a(x,z_0)f(x,z_0)\] This is a single variable polynomial which can be reduced modulo the polynomial $f(x,z_0)$ (which is
-known to the decryptor, since $f$ and $z_0$ are both components of the secret key) to give $m$. This proves correctness.
-
-\
 
 \subsection{Correctness of homomorphic operations}
 
-Now we prove that sums and products of encryptions are valid encryptions of the sums and products of the corresponding plaintexts.
+Now we prove that sums and products of encryptions are valid encryptions of the sums and products of the corresponding plaintexts. Unlike the choice-based scheme, there is no limit on the number of operations that can be performed on ciphertexts (i.e. we can apply an $n$-circuit for any $n$ in a well-defined manner).
 
-\claim If $m_1,m_2 \in \Z$, then $e(m_1)+e(m_2) = e(m_1+m_2)$
+\begin{thm}[Correctness of homomorphic operations for multivariate encryption] If $m_1,m_2 \in \Z$, then $e(m_1)+e(m_2) = e(m_1+m_2)$ and $e(m_1)e(m_2) = e(m_1m_2)$.
+\end{thm}
 
-\pf Let us recall first that the equality above is a coset equality, since encryptions are equivalent if they ar 
+\begin{proof}
+Note first that two ciphertexts are encryptions of the same value if and only if they lie in the same coset of $(f,g)\subset \Zxy$. The encryptions $e(m_1)$ and $e(m_2)$ are of the form
+\begin{align*}
+e(m_1) &= m_1+a_1f+b_1g\\
+e(m_2) &= m_2+a_2f+b_2g
+\end{align*}
+for some $a_i,b_i\in \Zxy$. Then
+\begin{align*}
+e(m_1)+e(m_2) &= m_1+m_2 +(a_1+a_2)f+(b_1+b_2)g
+\end{align*}
+This is in the coset $m_1+m_2$ of $(f,g)$, so it is indeed an encryption of $m_1+m_2$. This proves that the scheme is additively homomorphic. Consider the product now:
+\begin{align*}
+e(m_1)e(m_2) &= m_1m_2+(m_1a_2+m_2a_1)f+((m_1+a_1f)b_2+(m_2+a_2f)b_1)g
+\end{align*}
+This is in the coset $m_1m_2$ of $(f,g)$, so it is an encryption of $m_1m_2$. This proves that the scheme is multiplicatively homomorphic as well.
+\end{proof}
+At no point in the proof above does the size of either message affect the ability of the scheme to encrypt and decrypt properly; the scheme is fully homomorphic in the sense that arbitrary-depth circuits can by applied homomorphically.
 
-\
+
+\subsection{Example of multivariate encryption}
 
 \subsection{Practical analysis of homomorphicity}
+Unlike the choice-based scheme above, this scheme as presented suffers from significant ciphertext expansion as 
+
+
+\subsection{Security}
+\label{sec:mv_security}
 
 \subsection{Generalizing}
 
