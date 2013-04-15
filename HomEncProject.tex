@@ -605,7 +605,7 @@ There are then two issues with homomorphic operations in this scheme: coefficien
 \label{sec:mv_security}
 We now look at the security characteristics of this system. We have seen that the scheme is constructed to rely on the hardness of the Ideal Membership Problem for multivariate polynomial rings. In particular, encryptions of $m=0$ lie in $(f,g)\subset \Zxy$, so if there is a procedure to efficiently decide whether an element of $\Zxy$ is in the ideal $(f,g)$, we would be able to test whether arbitrary encryptions are encryptions of $0$. The ability to do so would be disastrous for the the security of our system; beyond simply being able to test if we are sending the message $m=0$ (which we could always avoid doing if need be), it allows us to \emph{compare} encryptions. We know that any two encryptions of a message $m\in \M$ are in the same coset of $(f,g)$, so their difference will be in the coset of $0$ (namely, it will be in $(f,g)$). Therefore, if an eavesdropper collects several plaintext/ciphertext pairs, she essentially has a table of encryptions to check any future encryptions against. For example, if our message space is small, an eavesdropper could perform a lunchtime (CITATION) attack and ask our encryption scheme to encrypt each of the possible messages, and then when she intercepts any message, she could easily determine its value based on her knowledge and ability to recognize encryptions of zero.
 
-The tool that helps solve the IMP in polynomial rings is called a \emph{Gr\"obner basis} for an ideal. We define two separate (but similar) notions of a Gr\"obner basis below. Note that the definitions below are given in the context of $\Zxy$, but they are applicable for polynomial rings in arbitrary numbers of variables over general rings.
+One tool that helps solve the IMP in the setting of polynomial rings is the theory of \emph{Gr\"obner bases}. Given a set of generators for an ideal, a the idea of a Gr\"obner basis is to provide a set of generators for the same ideal, but which have other properties that make them ideally suited for computation. We define two separate (but similar) notions of a Gr\"obner basis below, since both appear in the literature (see, for example, CITATIONS). Note that the definitions below are given in the context of $\Zxy$, but they are applicable for polynomial rings in arbitrary numbers of variables over general rings.
 
 \begin{definition}[Ideal of leading monomials]
 Given an ideal $I\subset \Zxy$, the ideal $LM(I)$ is defined as
@@ -630,7 +630,8 @@ A \emph{weak Gr\"obner basis} for the ideal $I\subset R[x,y]$ is a collection of
 
 By \emph{Gr\"obner basis}, we refer generally to the notion of a \emph{strong} Gr\"obner basis, since strong Gr\"obner bases are special cases of weak Gr\"obner bases. It is worth noting that every ideal in $\Zxy$ does indeed have a Gr\"obner basis, which may be non-obvious (CITE BECKER 455).
 
-Now, imagine an eavesdropper had access to a Gr\"obner basis for the ideal $(f,g)$ in our multivariate encryption scheme. FINISH FILLING IN DETAILS OF WHY KNOWING GB BREAKS SCHEME
+Now, imagine an eavesdropper had access to a Gr\"obner basis for the ideal $(f,g)$ in our multivariate encryption scheme, and she has intercepted a new ciphertext. 
+FINISH FILLING IN DETAILS OF WHY KNOWING GB BREAKS SCHEME
 
 We turn now to the question of the complexity of computing Gr\"obner bases in the context of our scheme. Much of the literature on the subject of these bases focuses on the case where the base ring is a field, and in this context, the problem of basis computation may not be difficult in the average case. 
 
@@ -649,7 +650,9 @@ As mentioned in the preceding section, the complexity of Gr\"obner basis computa
 
 The proof of the correctness of encryption and decryption is identical to that presented in section~\ref{sec:mv_scheme}, and it is thus merely sketched. In the encryption step, we add to $m\in \Z$ a random multiple of $f$ and a random multiple of $g=g'\cdot(x_2-z_2)\cdots(x_n-z_n)$. Evaluating this encryption at $(x,z_2,\dots,z_n)$ eliminates the term involving $g$, and leaves us with $m+a(x,z_2,\dots,z_n)f(x,z_2,\dots,z_n)$. Finally, reducing modulo $f(x,z_2,\dots,z_n)$ gives us the message, as desired. The proof of the well-definition of homomorphic operations is omitted, for it is identical to that presented above as well.
 
-It is worth noting that if we attempted to generalize schemes such as those presented in (CITE PCR pages 12, 23), the efficiency of the decryption step would rely on reducing modulo a basis in many variables. Our scheme avoids such messy computations by allowing simple evaluations and finally reduction by a single-variable polynomial. 
+When we increase the number of variables in our scheme, we also lose efficiency, since general polynomials in more variables of the same total degree contain a greater number of terms. This becomes a significant problem when we consider multiplying ciphertexts. For this reason, it may not be practical to consider using many variables, but the possibility is there.
+
+It is worth noting that if we attempted to generalize schemes such as those presented in (CITE PCR pages 12, 23), the efficiency of the decryption step would rely on reducing modulo a basis in many variables. Our scheme avoids such messy computations by allowing simple evaluations and finally reduction by a single-variable polynomial.
 
 \
 
@@ -764,7 +767,9 @@ Note that coeffsize doesn't matter so much for Z/pZ, since arithmetic is all Z/p
 
 \
 
-Cite sage, M2, singular, c++, GMP, d3, 
+Cite sage, M2, singular, c++, GMP, d3, Maple, Faugere's FGb package (http://www-polsys.lip6.fr/~jcf/Papers/ICMS.pdf)
+
+acknowledge Prof. Stillman for helpful conversation
 
 \
 

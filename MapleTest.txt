@@ -1,0 +1,14 @@
+with(fgbrs):
+				polysfile:="./Polys.txt":
+				fopen(polysfile,READ,TEXT):
+				polylist:=parse(readline(polysfile)):
+				fclose(polysfile):
+				t1:=time(): a:=fgb_gbasis([polylist],[x, y]): t2:=time():
+				T:=t2-t1;
+				resultsfile:="./MapleResults.txt":
+				fopen(resultsfile,APPEND,TEXT):
+				paramsfile:="./MapleParams.txt":
+				fopen(paramsfile,READ,TEXT):
+				fprintf(resultsfile,"%s|%s|%s|%f|\n",readline(paramsfile),readline(paramsfile),readline(paramsfile),T):
+				fclose(paramsfile):
+				fclose(resultsfile):
