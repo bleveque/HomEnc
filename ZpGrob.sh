@@ -9,7 +9,7 @@
 # 
 
 make
-for ((i=22;i<=24;i+=1));do                  # degree of f,g
+for ((i=29;i<=33;i+=1));do                  # degree of f,g
 	for ((j=16;j<=16;j+=4));do             # log-size of the coefficients of f,g -- shouldn't matter much here, so just 2^16 > 32749
 		for ((k=2;k<=20;k+=8));do          # number of polynomials fed to the gb function
 			for p in 11 101 1009 32749;do  # primes we use
