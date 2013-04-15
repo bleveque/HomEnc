@@ -628,18 +628,16 @@ A \emph{weak Gr\"obner basis} for the ideal $I\subset R[x,y]$ is a collection of
 \end{enumerate}
 \end{definition}
 
-By \emph{Gr\"obner basis}, we refer generally to the notion of a \emph{strong} Gr\"obner basis, since strong Gr\"obner bases are special cases of weak Gr\"obner bases. It is worth noting that every ideal in $\Zxy$ does indeed have a Gr\"obner basis, which may be non-obvious (CITE BECKER 455).
+By \emph{Gr\"obner basis}, we refer generally to the notion of a \emph{strong} Gr\"obner basis, since strong Gr\"obner bases are special cases of weak Gr\"obner bases. (HOWEVER there is a dichotomy: strong GB are easier to compute, but are often larger than weak GB -- check this, CITE Prof. Stillman). It is worth noting that every ideal in $\Zxy$ does indeed have a Gr\"obner basis, which may be non-obvious (CITE BECKER 455).
 
-Now, imagine an eavesdropper had access to a Gr\"obner basis for the ideal $(f,g)$ in our multivariate encryption scheme, and she has intercepted a new ciphertext. 
-FINISH FILLING IN DETAILS OF WHY KNOWING GB BREAKS SCHEME
+Now, imagine an eavesdropper had access to a Gr\"obner basis for the ideal $(f,g)$ in our multivariate encryption scheme, and she has intercepted a new ciphertext. She could iterate through her table of known plaintext/ciphertext pairs, checking each ciphertext against the intercepted encryption. Each check is comprised of taking a difference between the known ciphertext and the new encryption. If the leading monomial of the resulting polynomial is not divisible by any leading monomial in the Gr\"obner basis, we already know that the difference is not an element of $(f,g)$, so the known ciphertext cannot be an encryption of the same message as the intercepted encryption. If there does exist a leading monomial in the basis dividing the leading monomial of the difference, then (CITE BECKER 465 Theorem 10.23) tells us that we can algorithmically determine whether our new encryption is in $(f,g)$. Note that this is not entirely obvious, since we know only that the leading \emph{monomial} of some element of the Gr\"obner basis divides the leading monomial of our encryption. This says nothing about the value of the leading coefficient, and since we are working over the integers rather than over a field, it is plausible that divisibility could pose a problem. However, it turns out that the properties of $\Z$ together with the knowledge of the basis are sufficient for the eavesdropper to break the scheme. FINISH
 
-We turn now to the question of the complexity of computing Gr\"obner bases in the context of our scheme. Much of the literature on the subject of these bases focuses on the case where the base ring is a field, and in this context, the problem of basis computation may not be difficult in the average case. 
+Using this scheme, then, relies on choosing our keys in such a way that the process of finding a Gr\"obner basis for $(f,g)$ given a list of encryptions of zero is hard (if we are looking for security against a \emph{chosen plaintext attack} CITE SOMETHING, which assumes that an eavesdropper has as access to as many plaintext/ciphertext pairs as she desires). We address this question in more depth in chapter~\ref{chap:implementation} below, where we discuss the implementation of these cryptosystems and related data generation. For now, we mention that the degree of the polynomials $f$ and $g$ appears to play a large role in the complexity of the computation (as might be expected, since increasing the total degree of a two-variable polynomial increases the number of terms quadratically, and any computation becomes more time-consuming). Though we only produce data for the two-variable case, the number of variables also plays a role in this complexity (see, for example, CITE BAYER/STILLMAN SYZYGIES).
 
-TO MENTION: what parameters does complexity rely upon? degree, coeff size, number of variables (not tested)
 
 \subsection{Generalizing}
 \label{sec:mv_generalizing}
-As mentioned in the preceding section, the complexity of Gr\"obner basis computation depends on the number of variables involved. One potential benefit of the scheme presented is that it generalizes very easily and naturally to polynomial rings in arbitrary numbers of variables while maintaining ease of encryption and decryption. Since the scheme remains largely unchanged from that presented above, we list only the main features:
+As mentioned in the preceding section, the complexity of Gr\"obner basis computation depends in part on the number of variables involved. One potential benefit of the scheme presented is that it generalizes very easily and naturally to polynomial rings in arbitrary numbers of variables while maintaining ease of encryption and decryption. Since the scheme remains largely unchanged from that presented above, we list only the main features:
 
 \begin{itemize}
 \item Our secret polynomials $f,g$ are now elements of $\Zxn$
@@ -654,9 +652,9 @@ When we increase the number of variables in our scheme, we also lose efficiency,
 
 It is worth noting that if we attempted to generalize schemes such as those presented in (CITE PCR pages 12, 23), the efficiency of the decryption step would rely on reducing modulo a basis in many variables. Our scheme avoids such messy computations by allowing simple evaluations and finally reduction by a single-variable polynomial.
 
-\
 
-
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Applications}
 
 Beyond theoretical formulation, it is important to see how these schemes might perform in practice. As mentioned in the introduction, the efficiency of homomorphic schemes has been a major obstacle to their dissemination, and 
@@ -671,11 +669,14 @@ Beyond theoretical formulation, it is important to see how these schemes might p
 
 A significant drawback of using our choice-based encryption scheme for the manipulation of statistics is made apparent when we consider taking the standard deviation of many numbers. This requires being able to make a large number of well-defined multiplications, which may be impossible, especially if the numbers in question are large. Problems like this may be more suited to our multivariate scheme, which can make arbitrary numbers of well-defined multiplications. We may lose efficiency, but in computations that require correctness over
 
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Implementation}
 \label{chap:implementation}
 
-\
 
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Appendix}
 
 \section{Common notation and terminology}
@@ -731,7 +732,7 @@ This section is a compilation of and reference for some of the types of attacks 
 \item gcd attacks
 \item G.B. attacks (type of gcd)
 \item using known encryptions of zero to identify encryptions of the same value
-\item
+\item Chosen plaintext attack (define, etc)
 \end{itemize}
 
 \
@@ -747,7 +748,7 @@ Cite Donald Knuth, Art of Computer Programming, Addison-Wesley Publishing Compan
 
 \
 
-Cite Gentry, Fellows and Koblitz, Dummit and Foote, Grobner Bases book, Henri Cohen, HPS
+Cite Gentry, Fellows and Koblitz, Dummit and Foote, Grobner Bases book, Henri Cohen, HPS, Lauter, Bayer/Stillman syzygies
 
 \
 
