@@ -17,6 +17,7 @@ array::array(const array& arr)
 
 array::array(int size)
 {
+    //gives a 0-array with size elements
     len=size;
     vals=new bigint[size];
     int i;
@@ -84,18 +85,6 @@ array array::operator*(bigint b)
     return ret;
 }
 
-// array array::operator*(const array& arr) //ambiguous overloading
-// {
-//     assert(len==arr.len);
-//     int i;
-//     array ret;
-//     for(i=0;i<len;i++)
-//     {
-//         ret.append(vals[i]*arr.vals[i]);
-//     }
-//     return ret;
-// }
-
 bigint array::operator[](int i)
 {
     bigint ret(0);
@@ -135,6 +124,14 @@ void array::append(bigint val)
         vals[len]=val;
         len++;
     }
+}
+
+void array::set_val(int index, bigint v)
+{
+    if(len<=index)
+        cout << "index out of bounds, not setting value" << "\n";
+    else
+        vals[index]=v;
 }
 
 void array::appendv(bigint vec[], int size)

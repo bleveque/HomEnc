@@ -1,143 +1,96 @@
+/**
+* Ben LeVeque, 2013
+* common.cpp
+*
+* Includes definitions of common functions used throughout the project
+**/
+
 #include "common.h"
 
-void printinfo(bigint b, string s)
+void printinfo(bigint b, string s) 
 {
+    /* makes it easy to print bigints */
     cout << s << " = " << b << "\n";
 }
-
-void split(string s, char c, string * ret)
-{
-    //assume that ret has not been allocated
-    int i=0, num_match=0;
-    while(s[i]!=0)
-    {
-        if((s[i]==c) && (i!=0) && (s[i+1]!=0))
-        {
-            num_match++;
-        }
-        i++;
-    }
-    ret=new string[num_match+1];
-    i=0;
-}
-
-
 bigint GCD(bigint a, bigint b)
 {
+    /* computes the greatest common divisor of a and b using mpz_gcd */
     bigint c;
     mpz_gcd(c.get_mpz_t(),a.get_mpz_t(),b.get_mpz_t());
     return c;
 }
 bigint MOD(bigint a, bigint m)
 {
-    //result is non-negative
+    /* computes a mod b using mpz_mod, giving a non-negative result */
     bigint r;
     mpz_mod(r.get_mpz_t(),a.get_mpz_t(),m.get_mpz_t());
     return r;
 }
 bigint NEXTPRIME(bigint after)
 {
+    /* uses mpz_nextprime to find the next prime number after the input */
     bigint r;
     mpz_nextprime(r.get_mpz_t(),after.get_mpz_t());
     return r;
 }
+bigint NTHROOT_CEIL(bigint b, int n)
+{
+    /* Returns the ceiling of the nth root of b */
+    bigint r;
+    int t;
+    t=mpz_root(r.get_mpz_t(),b.get_mpz_t(),n);
+    if(t)
+        return r;
+    else
+        return r+1;
+}
 bigint POW(bigint base, bigint exp)
 {
-    // bigint ret;
-    //     bigint mod(0);
-    //     mpz_powm(ret.get_mpz_t(),base.get_mpz_t(),exp.get_mpz_t(),mod.get_mpz_t());
-    //     return ret;
-    assert(exp>=0);
-    if(exp==0)
-        return bigint(1);
-    else if(exp==1)
-        return base;
-    else
-    {
-        long xp=exp.get_si();
-        int i;
-        bigint ret(base);
-        for(i=0;i<xp-1;i++)
-        {
-            ret*=base;
-        }
-        return ret;
-    }
+    /* computes base^exp using mpz_pow_ui */
+    bigint r;
+    mpz_pow_ui(r.get_mpz_t(),base.get_mpz_t(),mpz_get_ui(exp.get_mpz_t()));
+    return r;
 }
-
 bigint POWMOD(bigint base, bigint exp, bigint m)
 {
-    assert(exp>=0);
-    if(exp==0)
-        return MOD(1,m);
-    else if(exp==1)
-        return MOD(base,m);
-    else
-    {
-        long xp=exp.get_si();
-        int i;
-        bigint ret(base);
-        for(i=0;i<xp-1;i++)
-        {
-            ret*=base;
-            ret=MOD(ret,m);
-        }
-        return ret;
-    }
+    /* computes base^exp mod m using mpz_powm */
+    bigint r;
+    mpz_powm(r.get_mpz_t(),base.get_mpz_t(),exp.get_mpz_t(),m.get_mpz_t());
+    return r;
 }
-
 bigint RAND(bigint bound, bigint lbound)
 {
+    /* computes a random integer in [lbound,bound) */
     assert(lbound<=bound);
     bigint r(rand());
     while(r<bound)
         r=r*rand()+rand(); //want to avoid things like rand being a multiple of 5, so r will always be a multiple of 5 thereafter
     return MOD(r,bound-lbound)+lbound;
 }
-
-bigint RAND2(bigint bound, bigint lbound)
-{//old version of RAND -- problem is that we're only using products of random numbers
-    assert(lbound<=bound);
-    bigint r1(rand());
-    bigint r2(rand());
-    bigint r3(rand());
-    while(r1*r2*r3==0)
-    {
-        r1=rand();
-        r2=rand();
-        r3=rand();
-    }
-    bigint r=r1*r2*r3;
-    while(r<bound-lbound)
-    {
-        bigint rnd(rand());
-        r=r*rnd;
-    }
-    return MOD(r,bound-lbound)+lbound;
-}
 bigint RAND(bigint bound)
 {
+    /* calls RAND with lbound=0 */
     return RAND(bound,bigint(0));
 }
 bigint RAND()
 {
+    /* calls RAND with bound=10000 and lbound=0 */
     return RAND(bigint(10000),bigint(0));
 }
-
-bigint RANDODD(bigint bound=bigint(10000), bigint lbound=bigint(0))
+bigint SQRT(bigint b)
 {
-    assert(lbound<=bound);
-    bigint b2=bound/2;
-    bigint r=RAND(b2-1);
-    bigint ret=2*r+1;
-    return ret;
-}
-bigint RANDODD()
-{
-    return RANDODD(bigint(10000),bigint(0));
+    bigint r;
+    mpz_sqrt(r.get_mpz_t(),b.get_mpz_t());
+    return r;
 }
 bigint XGCD(bigint a, bigint b, bigint &ainv, bigint &binv)
 {
+    /* computes the extended gcd of a and b using mpz_gcdext
+       the output g and variables ainv and binv satisfy
+          g = a*ainv + b*binv
+       The variables ainv and binv are so called for the
+       specific case when g=1.
+     */
     bigint g;
     mpz_gcdext(g.get_mpz_t(),ainv.get_mpz_t(),binv.get_mpz_t(),a.get_mpz_t(),b.get_mpz_t());
     return g;

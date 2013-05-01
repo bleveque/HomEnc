@@ -5,10 +5,10 @@
 array ARRMOD(array arr, bigint m)
 {
     int i, N=arr.get_len();
-    array ret;
+    array ret(N);
     for(i=0;i<N;i++)
     {
-        ret.append(MOD(arr[i],m));
+        ret.set_val(i,MOD(arr[i],m));//append(MOD(arr[i],m));
     }
     return ret;
 }
@@ -17,10 +17,10 @@ array ARRMODARR(array arr, array marr)
 {
     int i, N=arr.get_len();
     assert(N==marr.get_len());
-    array ret;
+    array ret(N);
     for(i=0;i<N;i++)
     {
-        ret.append(MOD(arr[i],marr[i]));
+        ret.set_val(i,MOD(arr[i],marr[i]));//.append(MOD(arr[i],marr[i]));
     }
     return ret;
 }
@@ -29,10 +29,10 @@ array COMPWISEPROD(array arr1, array arr2)
 {
     int i, N=arr1.get_len();
     assert(N==arr2.get_len());
-    array ret;
+    array ret(N);
     for(i=0;i<N;i++)
     {
-        ret.append(arr1[i]*arr2[i]);
+        ret.set_val(i,arr1[i]*arr2[i]);//append(arr1[i]*arr2[i]);
     }
     return ret;
 }
@@ -73,11 +73,11 @@ int NOTIN(array arr, bigint nw)
 
 array RANDARR(int n, bigint bd)
 {
-    array ret;
+    array ret(n);
     int i;
     for(i=0;i<n;i++)
     {
-        ret.append(RAND(bd));
+        ret.set_val(i,RAND(bd));//append(RAND(bd));
     }
     return ret;
 }
@@ -143,8 +143,9 @@ void KEYGEN(array &p, array &q, bigint &P, bigint &M, bigint &K, int &N, int cle
         K=RAND(30,10);
     if(N==0)
         N=128;
-        
-    bigint prodplb(POW((K+1)*P,M));
+    p=array(N);
+    q=array(N);
+    bigint prodplb(POW((K+1)*P,M+1));
     //cout << "prod(p_i) lower bound = " << prodplb << "\n";
     bigint eachpi(NTHROOT_CEIL(prodplb,N));
         
@@ -160,7 +161,7 @@ void KEYGEN(array &p, array &q, bigint &P, bigint &M, bigint &K, int &N, int cle
             ctr++;
             nwp=NEXTPRIME(RAND(ctr*eachpi,eachpi));
         }
-        p.append(nwp);
+        p.set_val(i,nwp);//append(nwp);
         
         ctr=2;
         nwq=NEXTPRIME(RAND(2*eachpi,eachpi));
@@ -169,7 +170,7 @@ void KEYGEN(array &p, array &q, bigint &P, bigint &M, bigint &K, int &N, int cle
             ctr++;
             nwq=NEXTPRIME(RAND(ctr*eachpi,eachpi));
         }
-        q.append(nwq);
+        q.set_val(i,nwq);//append(nwq);
     }
     bigint prodp=p.prod();
     //cout << "prod(p_i) =             " << prodp << "\n";
@@ -182,6 +183,8 @@ void KEYGEN(array &p, array &q, bigint &P, int N, int cleararrs)
         p.clear();
         q.clear();
     }
+    p=array(N);
+    q=array(N);
     //assume all inputted arrays are empty
     int i;
     bigint nwp, nwq;
@@ -190,12 +193,12 @@ void KEYGEN(array &p, array &q, bigint &P, int N, int cleararrs)
         nwp=NEXTPRIME(RAND(1000000,10001));
         while(IN(p,nwp))
             nwp=NEXTPRIME(RAND(1000000,10001));
-        p.append(nwp);
+        p.set_val(i,nwp);//append(nwp);
         
         nwq=NEXTPRIME(RAND(1000000,10001));
         while(IN(q,nwq))
             nwq=NEXTPRIME(RAND(1000000,10001));
-        q.append(nwq);
+        q.set_val(i,nwq);//append(nwq);
     }
     bigint prodp=p.prod();
     P=NEXTPRIME(RAND(10000,1001));
@@ -212,6 +215,7 @@ array ENCRYPT(bigint m, array p, array q, bigint P, bigint K, int check, int pri
         NWLN;
     }
     int N=p.get_len();
+    
     int i;
     if(check)
     {
@@ -231,10 +235,10 @@ array ENCRYPT(bigint m, array p, array q, bigint P, bigint K, int check, int pri
         NWLN;
     }
     array a(RANDARR(N));
-    array ret;
+    array ret(N); //zero array
     for(i=0;i<N;i++)
     {
-        ret.append(MOD(m+a[i]*p[i]+K*P,p[i]*q[i]));
+        ret.set_val(i,MOD(m+a[i]*p[i]+K*P,p[i]*q[i]));
     }
     return ret;
 }
@@ -266,10 +270,10 @@ array ENCRYPT(bigint m, array p, array q, bigint P, int check, int print)
         NWLN;
     }
     array a(RANDARR(N));
-    array ret;
+    array ret(N);
     for(i=0;i<N;i++)
     {
-        ret.append(MOD(m+a[i]*p[i]+K*P,p[i]*q[i]));
+        ret.set_val(i,MOD(m+a[i]*p[i]+K*P,p[i]*q[i]));
     }
     return ret;
 }
@@ -283,11 +287,11 @@ bigint DECRYPT(array enc, array p, bigint P)
 {
     //first reduce mod p[i], then use the CRT, then reduce mod P
     int i, N=enc.get_len();
-    array modif;
+    array modif(N);
     for(i=0;i<N;i++)
     {
         bigint t1(MOD(enc[i],p[i]));
-        modif.append(t1);
+        modif.set_val(i,t1);//append(t1);
     }
     bigint r(CRT(modif,p,1));
     bigint ret(MOD(r,P));
@@ -298,10 +302,10 @@ array APPLYCIRC_ENC(array circ, array enc1, array enc2)
 {
     int N=enc2.get_len();
     assert(circ.get_len()==2);
-    array med;
+    array med(N);
     int i;
     for(i=0;i<N;i++)
-        med.append(POW(enc2[i],circ[1]));
+        med.set_val(i,POW(enc2[i],circ[1]));//append(POW(enc2[i],circ[1]));
     array ret(enc1*circ[0]+med);
     return ret;
 }
@@ -310,11 +314,11 @@ array APPLYCIRC_ENC_MODpq(array circ, array enc1, array enc2, array pq)
 {
     int N=enc2.get_len();
     assert(circ.get_len()==2);
-    array med;
+    array med(N);
     int i;
     for(i=0;i<N;i++)
     {
-        med.append(POWMOD(enc2[i],circ[1],pq[i]));
+        med.set_val(i,POWMOD(enc2[i],circ[1],pq[i]));//append(POWMOD(enc2[i],circ[1],pq[i]));
     }
     array ret(ARRMODARR(enc1*circ[0]+med,pq));
     return ret;

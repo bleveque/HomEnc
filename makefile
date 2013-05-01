@@ -1,6 +1,6 @@
 GMPFLAGS=-lgmpxx -lgmp
 CFLAGS=-combine -o
-SRCS=m.cpp funcs.cpp array.cpp llist.cpp common.cpp
+SRCS=main.cpp nt_funcs.cpp vec.cpp llist.cpp common.cpp
 OBJS=$(subst .cpp,.o,$(SRCS))
 
 enc: $(SRCS)

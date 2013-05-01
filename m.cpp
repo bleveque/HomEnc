@@ -108,7 +108,7 @@ void functest(void)
     printinfo(modtest,"MOD(101,82) = 19");
     
     testinfo("POW");
-    bigint BI(POW(39,19));
+    bigint BI(POW(bigint(39),bigint(19)));
     printinfo(BI,"39^19");
     
     testinfo("CRT");

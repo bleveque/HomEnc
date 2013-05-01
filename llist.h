@@ -1,15 +1,27 @@
+/**
+* Ben LeVeque, 2013
+* llist.h
+*
+* Header file for a linked list class. This class will allow us
+* to represent (possibly) sparse multivariate polynomials without
+* the need to keep track of zero terms. Terms/nodes are represented
+* as a structure containing a pointer to the next term, a bigint
+* coefficient, an x-degree, and a y-degree. Addition and mulitplication
+* of polynomials are very straightforward, relying on an implementation
+* of node insertion that combines like terms. The linked list has a set
+* head node that has x and y degree -1 to avoid empty list problems.
+*
+* Idea from Knuth's Art of Computer Programming.
+**/
+
 #ifndef LLIST_H
 #define LLIST_H
 
 #include <fstream>
 #include "common.h"
 
-/* doubly linked list for representing 
-   two-variable polynomials (inspired by Knuth 270-5)  */
-
 typedef struct node
 {
-	struct node * prev;
 	struct node * next;
 	bigint coeff;
 	int xdeg;
@@ -19,8 +31,7 @@ typedef struct node
 class llist
 {
 	public:
-		llist(){head=new node;head->prev=NULL;head->next=NULL;head->coeff=bigint(0);head->xdeg=-1;head->ydeg=-1;};
-		//-1 as suggested in Knuth
+		llist(){head=new node;head->next=NULL;head->coeff=bigint(0);head->xdeg=-1;head->ydeg=-1;};
 		llist(const llist& L);
 		virtual ~llist();
 		

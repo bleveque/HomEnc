@@ -25,6 +25,7 @@ class array
         int get_len(void);
         void printr(void);
         void printinfo(std::string name);
+		void set_val(int index, bigint val);
         bigint prod(void);
         
     protected:

@@ -3,7 +3,7 @@
 llist::llist(const llist& L)
 {
     head=new node;
-    head->prev=NULL;
+    //head->prev=NULL;
     head->next=NULL; //head->next = NULL is equivalent to the list being empty (same with prev)
     head->coeff=bigint(0);
     head->xdeg=-1;
@@ -152,7 +152,7 @@ void llist::insert(bigint coeff, int xdeg, int ydeg)
         ndptr->ydeg=ydeg;
         ndptr->next=pptr->next;
         pptr->next=ndptr;
-        ndptr->prev=pptr;
+        //ndptr->prev=pptr;
         return;
     }
     //now we assume that ptr->xdeg==xdeg
@@ -169,7 +169,7 @@ void llist::insert(bigint coeff, int xdeg, int ydeg)
         ndptr->ydeg=ydeg;
         ndptr->next=pptr->next;
         pptr->next=ndptr;
-        ndptr->prev=pptr;
+        //ndptr->prev=pptr;
         return;
     }
     //now we assume that the xdegs and ydegs are the same, so add
@@ -298,8 +298,8 @@ void llist::trim_zeros(void)
         if(ptr->coeff==bigint(0))
         {
             pptr->next=ptr->next;
-            if(ptr->next)
-                ptr->next->prev=pptr;
+            //if(ptr->next)
+            //    ptr->next->prev=pptr;
             node * temp=ptr;
             ptr=ptr->next;
             delete temp;
