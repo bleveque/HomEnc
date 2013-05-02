@@ -7,8 +7,8 @@
 
 make
 for ((i=3;i<=5;i+=1));do             # degree of f,g
-	for ((j=6;j<=20;j+=4));do        # log-size of the coefficients of f,g
-		for ((k=2;k<=50;k+=8));do    # number of polynomials fed to the gb function
+	for ((j=3;j<=10;j+=1));do        # log-size of the coefficients of f,g
+		for ((k=2;k<=10;k+=1));do    # number of polynomials fed to the gb function
 			for ((l=0;l<5;l++));do   # five values to get a decent average
 				echo degree=$i, log-size=$j, numpolys=$k, iteration=$l
 				./enc grob $i $j $k
@@ -29,7 +29,7 @@ for ((i=3;i<=5;i+=1));do             # degree of f,g
 				f << totalDegree << "|" << sizeCoeffs << "|" <<  numPolysGiven << "|" << T << "|" << endl << close
 				1+' > M2test.txt
 				M2 --stop --no-backtrace M2test.txt
-				sleep 1
+				# sleep 1
 				echo ""
 			done
 		done

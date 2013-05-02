@@ -1,10 +1,17 @@
+/**
+* Ben LeVeque, 2013
+* llist.cpp
+*
+* Definitions of the functions declared in llist.h.
+**/
+
 #include "llist.h"
 
 llist::llist(const llist& L)
 {
+    /* Copy constructor for linked lists. */
     head=new node;
-    //head->prev=NULL;
-    head->next=NULL; //head->next = NULL is equivalent to the list being empty (same with prev)
+    head->next=NULL; //head->next = NULL is equivalent to the list being empty
     head->coeff=bigint(0);
     head->xdeg=-1;
     head->ydeg=-1;
@@ -19,6 +26,7 @@ llist::llist(const llist& L)
 
 llist::~llist()
 {
+    /* Destructor. Deletes all nodes. */
     node * ptr=head;
     node * next=head->next;
     while(ptr)
@@ -32,12 +40,19 @@ llist::~llist()
 
 llist& llist::operator=(llist L)
 {
+    /* Assignment operator overload. */
     llist temp(L);
-    std::swap(head,temp.head); //right???
+    std::swap(head,temp.head);
 }
 
 llist llist::operator+(const llist& L)
 {
+    /* Addition operator overload. Creates a new list
+       and inserts each node of *this and L. Since node
+       insertion handles combining like terms, this is
+       all that's necessary. In case we have term cancellation,
+       we trim out the zero terms at the end.
+     */
     llist ret;
     node * ptr=head->next;
     node * Lptr=L.head->next;
@@ -57,6 +72,7 @@ llist llist::operator+(const llist& L)
 
 llist llist::operator-(const llist& L)
 {
+    /* Subtraction operator overload. Analogous to operator+. */
     llist ret;
     node * ptr=head->next;
     node * Lptr=L.head->next;
@@ -76,6 +92,10 @@ llist llist::operator-(const llist& L)
 
 llist llist::operator*(const llist& L)
 {
+    /* Multiplication operator overload. Inserts each product of pairs
+       of terms from *this and L. Node insertion handles combining
+       like terms.
+     */
     llist ret;
     node * ptr=head->next;
     int i=0,j=0;
@@ -101,6 +121,10 @@ llist llist::operator*(const llist& L)
 
 llist llist::eval_y(bigint z)
 {
+    /* De facto evaluation at y. Changes each coefficient to
+       be the product of the existing coefficient and z^ydeg
+       and then changes the y-degree to 0.
+     */
     llist ret;
     node * ptr=head->next;
     while(ptr)
@@ -113,6 +137,7 @@ llist llist::eval_y(bigint z)
 
 bigint llist::get_lead_coeff(void)
 {
+    /* Returns LC(*this). */
     node * ptr=head->next;
     if(!ptr)
         return bigint(0);
@@ -121,6 +146,7 @@ bigint llist::get_lead_coeff(void)
 
 int llist::get_xdeg(void)
 {
+    /* Returns the x-degree of *this. */
     node * ptr=head->next;
     if(!ptr)
         return 0;
@@ -129,11 +155,10 @@ int llist::get_xdeg(void)
 
 void llist::insert(bigint coeff, int xdeg, int ydeg)
 {
-    /* 
-        takes in a node, allocates a pointer to it, inserts it in the list
-        x > y
-        store in decreasing orders
-        e.g.
+    /*  Node insertion. Takes in a node, allocates a pointer to it,
+        inserts it in the list in decreasing order of x-degree, then
+        decreasing order of y-degree. Like terms are combined if necessary.
+        As an example of the ordering, consider the following:
           x^n(y^m+....+y+7) + x^(n-1)(y^2+y+9) + ... + x(y^7+y^3) + (y^3+y) + 9
     */
     node * ptr=head->next;
@@ -152,7 +177,6 @@ void llist::insert(bigint coeff, int xdeg, int ydeg)
         ndptr->ydeg=ydeg;
         ndptr->next=pptr->next;
         pptr->next=ndptr;
-        //ndptr->prev=pptr;
         return;
     }
     //now we assume that ptr->xdeg==xdeg
@@ -169,7 +193,6 @@ void llist::insert(bigint coeff, int xdeg, int ydeg)
         ndptr->ydeg=ydeg;
         ndptr->next=pptr->next;
         pptr->next=ndptr;
-        //ndptr->prev=pptr;
         return;
     }
     //now we assume that the xdegs and ydegs are the same, so add
@@ -179,6 +202,7 @@ void llist::insert(bigint coeff, int xdeg, int ydeg)
 
 void llist::listprint(string s)
 {
+    /* Friendly linked list printing. */
     node * ptr=head;
     cout << s << " = ";
     while(ptr)
@@ -193,6 +217,7 @@ void llist::listprint(string s)
 
 void llist::printinfo(string s)
 {
+    /* Prints *this as a polynomial. */
     trim_zeros();
     node * ptr=head->next;
     cout << s << " = ";
@@ -218,6 +243,9 @@ void llist::printinfo(string s)
 
 void llist::print_to_file(ofstream * file)
 {
+    /* Saves a polynomial to a file. This is helpful for running
+       Grobner basis tests.
+     */
     trim_zeros();
     node * ptr=head->next;
     if(!ptr)
@@ -241,8 +269,9 @@ void llist::print_to_file(ofstream * file)
 
 llist llist::quot_x(const llist& L)
 {
-    //returns *this / L
-    //assume zeros have been trimmed from L
+    /* Returns *this / L using polynomial long division.
+       We assume that zeros have been trimmed from L.
+     */
     node * Lptr=L.head->next;
     if(!Lptr)
     {
@@ -271,9 +300,6 @@ llist llist::quot_x(const llist& L)
             return failure;
         }
     }
-    //R.printinfo("Rem");
-    //Q.printinfo("Quot");
-    //(T-Q*L-R).printinfo("T-Q*L-R");
     Q.trim_zeros();
     R.trim_zeros();
     return Q;
@@ -281,8 +307,10 @@ llist llist::quot_x(const llist& L)
 
 llist llist::reduce_x(const llist& L)
 {
-    //assume that L and this are both polynomials only in x (i.e. ydeg=0 for all terms)
-    //compute the reduction this%L
+    /* Reduces *this modulo L, assuming that both are polynomials
+       only in x (i.e. ydeg=0 for all terms). This uses the quot_x
+       method above.      
+     */
     llist Q(quot_x(L));
     llist T(*this);
     llist ret(T-Q*L);
@@ -291,6 +319,7 @@ llist llist::reduce_x(const llist& L)
 
 void llist::trim_zeros(void)
 {
+    /* Delete any 0-coefficient terms. */
     node * ptr=head->next;
     node * pptr=head;
     while(ptr)
@@ -298,8 +327,6 @@ void llist::trim_zeros(void)
         if(ptr->coeff==bigint(0))
         {
             pptr->next=ptr->next;
-            //if(ptr->next)
-            //    ptr->next->prev=pptr;
             node * temp=ptr;
             ptr=ptr->next;
             delete temp;
