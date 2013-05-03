@@ -1,3 +1,4 @@
-totalDegree=8
-sizeCoeffs=8
-numPolysGiven=2
+totalDegree=10
+sizeCoeffs=65536
+numPolysGiven=10
+p=32749
