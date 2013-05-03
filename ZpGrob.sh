@@ -9,9 +9,9 @@
 # 
 
 make
-for ((i=30;i<=33;i+=1));do                  # degree of f,g
-	for ((j=16;j<=16;j+=4));do             # log-size of the coefficients of f,g -- shouldn't matter much here, so just 2^16 > 32749
-		for ((k=2;k<=20;k+=8));do          # number of polynomials fed to the gb function
+for ((i=3;i<=10;i+=1));do                  # degree of f,g
+	for ((j=3;j<=10;j+=1));do             # log-size of the coefficients of f,g -- shouldn't matter much here, so just 2^16 > 32749
+		for ((k=2;k<=10;k+=1));do          # number of polynomials fed to the gb function
 			for p in 11 101 1009 32749;do  # primes we use
 				for ((l=0;l<5;l++));do     # five values to get a decent average
 					echo degree=$i, log-size=$j, numpolys=$k, prime=$p, iteration=$l

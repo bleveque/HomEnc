@@ -14,6 +14,7 @@
 \newtheorem{prop}{Proposition}
 \newtheorem{lemma}{Lemma}
 \newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -190,11 +191,9 @@ It should be mentioned, as well, that the scheme above is just a ``toy'' example
 \section{Introduction to present work}
 
 \
-In his 2009 dissertation CITATION, Craig Gentry presented the first secure fully homomorphic encryption scheme. His construction was based on the theory of ideal lattices (ideals in quotient polynomial rings), and it represented a major breakthrough as a proof-of-concept and started a rapid-pace movement towards creating an \emph{efficient} fully homomorphic scheme. This thesis will present two cryptosystems that show promise as either somewhat or fully homomorphic encryption schemes and explore their security and efficiency.
+In his 2009 dissertation~\cite{gentry-thesis}, Craig Gentry presented the first secure fully homomorphic encryption scheme. His construction was based on the theory of ideal lattices (ideals in quotient polynomial rings), and it represented a major breakthrough as a proof-of-concept and started a rapid-pace movement towards creating an \emph{efficient} fully homomorphic scheme. This thesis will present two cryptosystems that show promise as either somewhat or fully homomorphic encryption schemes and explore their security and efficiency.
 
-The first, which is formulated entirely over the integers (and quotient rings thereof), relies on the hardness of making $N$ consecutive correct choices, where each choice
-is between two values. We will refer to this as ``choice-based encryption'' (CBE). The second, which is formulated over multivariate polynomial rings, relies on the hardness of the ideal membership problem (IMP) in this
-setting. Similar schemes in the past---sometimes referred to as \emph{Polly Cracker} schemes after their introduction by Koblitz and Fellows (CITATION -- from GENTRY AS WELL?)---have been formulated, mainly (CHECK) over finite fields. The cryptosystem presented in section~\ref{sec:multicrypt}  below can be formulated over general rings, though we focus on an implementation over the integers. Translating this to an implementation over $\Z/p\Z$ is a matter of reducing coefficients, so while it is easy to reformulate in this setting, the security of the scheme may be compromised, as we will see.
+The first, which is formulated entirely over the integers (and quotient rings thereof), relies on the hardness of making $N$ consecutive correct choices, where each choice is between two values. We will refer to this as ``choice-based encryption'' (CBE). The second, which is formulated over multivariate polynomial rings, relies on the hardness of the ideal membership problem (IMP) in this setting. Similar schemes in the past---sometimes referred to as \emph{Polly Cracker} schemes after their introduction by Koblitz and Fellows in~\cite{fellows-koblitz}---have been formulated, mainly (CHECK) over finite fields. The cryptosystem presented in section~\ref{sec:multicrypt}  below can be formulated over general rings, though we focus on an implementation over the integers. Translating this to an implementation over $\Z/p\Z$ is a matter of reducing coefficients, so while it is easy to reformulate in this setting, the security of the scheme may be compromised, as we will see.
 
 Finally, we note that both schemes are presented as \emph{symmetric} schemes, meaning that the secret key information is shared by the encryptor and the decryptor. While such schemes do not enjoy the same flexibility as \emph{asymmetric} schemes (in which anyone can encrypt a message meant to be decrypted by a certain recipient, so the knowledge of keys is asymmetric), they are sufficient for many purposes, including some of the natural applications of homomorphic encryption. For example, symmetric encryption is well-suited to the situation in which the encryptor has a collection of data she wants to store on the cloud and later retrieve, since only one person needs to know the secret information necessary to both encrypt and decrypt.
 
@@ -628,15 +627,15 @@ This shows that applying a circuit is well-defined for this example.
 \label{sec:mv_hom_analysis}
 Unlike the choice-based scheme above, this scheme as presented suffers from significant ciphertext expansion as circuits with a large number of multiplications are applied. Sums of ciphertexts do not grow in size too quickly, because when two ciphertexts are added, the degree of the result will not have grown. The coefficients roughly double in an addition, but this is negligible when compared to the result of a multiplication. When two ciphertexts (of comparable degree) are multiplied, the total degree of the result is roughly twice the total degree of the initial ciphertexts. Let $d$ be the maximum of the maximum $x$-degree and $y$-degree of the product. Since we are working with two variables, there are roughly $d^2$ possible terms, each having coefficients larger than those in the initial ciphertexts. For example, the coefficient of the highest degree term will be the product of the corresponding highest-degree coefficients of the original ciphertexts, and the coefficients of smaller degree terms will be sums of such products, leading to very fast coefficient growth.
 
-There are then two issues with homomorphic operations in this scheme: coefficient growth and degree growth. In order to combat coefficient growth, we could imagine setting up our scheme with $\mathcal{C} = \Zpxy$ for some prime $p$ rather than $\mathcal{C} = \Zxy$. We will discuss the feasibility of this possibility in more depth in section~\ref{sec:mv_security} below, but doing so negatively affects the security of the scheme. To attempt to deal with degree growth, we could consider making an encryption of $m=0$ public knowledge and then reducing modulo this encryption whenever we want to reduce the degree of a ciphertext. In general, reducing modulo a polynomial may not reduce both the $x$- and $y$-degree of the polynomial it is reducing, but suppose we choose one encryption of zero (i.e. element of $(f,g)$) which lies entirely in $\Zx$ (of degree $n$) and one which lies entirely in $\Zy$ (of degree $m$). If this were possible, we could reduce the $x$- and $y$-degrees of our ciphertext independently, so that the maximum $x$-degree we would ever encounter would be $n$, and similarly for the $y$-degree and $m$.
+There are then two issues with homomorphic operations in this scheme: coefficient growth and degree growth. In order to combat coefficient growth, we could imagine setting up our scheme with $\mathcal{C} = \Zpxy$ for some prime $p$ rather than $\mathcal{C} = \Zxy$. We will discuss the feasibility of this possibility in more depth in section~\ref{sec:mv_security} below, but doing so negatively affects the security of the scheme. To attempt to deal with degree growth, we could consider making an encryption of $m=0$ public knowledge and then reducing modulo this encryption whenever we want to reduce the degree of a ciphertext (with the caveat that the leading coefficient of the public encryption must divide the leading coefficient of the ciphertext). In general, reducing modulo a polynomial may not reduce both the $x$- and $y$-degree of the polynomial it is reducing, but suppose we choose one encryption of zero (i.e. element of $(f,g)$) which lies entirely in $\Zx$ (of degree $n$) and one which lies entirely in $\Zy$ (of degree $m$). If this were possible, and if its leading coefficient divided any leading coefficient of an encryption, we could reduce the $x$- and $y$-degrees of our ciphertext independently, so that the maximum $x$-degree we would ever encounter would be $n$, and similarly for the $y$-degree and $m$.
 
-We know that it is possible to find such elements of $(f,g)$ by the theory of resultants, which we now discuss briefly:
+Given certain restrictions on $f$ and $g$, we know that it is possible to find such elements of $(f,g)$ by the theory of resultants, which we now discuss briefly:
 
 \begin{definition}[Resultant]
 If $h,h'\in \Zx$ are given by
 \begin{align*}
 h &= a_nx^n+\ldots+a_1x+a_0\\
-h' &= b_mx^n+\ldots+b_1x+b_0
+h' &= b_mx^m+\ldots+b_1x+b_0
 \end{align*}
 then we define the \emph{resultant} $Res(h,h')$ of $h$ and $h'$ to be the determinant of the following $(m+n)\times (m+n)$ matrix:
 \begin{align*}
@@ -662,7 +661,7 @@ Res(h,h') &= \det\left(\begin{array}{c}\begin{array}{cccccccccc|}
 		   \end{array}
 \end{align*}
 \end{definition}
-From the definition, it is clear that if $h$ and $h'$ are integer polynomials in one variable, $Res(h,h') \in \Z$. From (CITE LANG), we also have that there exist polynomials $l,l'\in \Zx$ such that
+From the definition, it is clear that if $h$ and $h'$ are integer polynomials in one variable, $Res(h,h') \in \Z$. From~\cite{lang-algebra}, we also have that there exist polynomials $l,l'\in \Zx$ such that
 \[hl+h'l' = Res(h,h') \]
 Now, consider our secret polynomials $f$ and $g$. By the above, we know that
 \begin{align*}
@@ -674,34 +673,73 @@ and that there exist $l_{f,x}, l_{g,x}\in \Zx$ and $l_{f,y}, l_{g,y}\in \Zy$ suc
 l_{f,x}f(x,1)+l_{g,x}g(x,1) = R_x\\
 l_{f,y}f(1,y)+l_{g,y}g(1,y) = R_y
 \end{align*}
-By replacing the variables $x$ and $y$, we can see that
+By replacing the variables $y$ and $x$, respectively, we can see that
 \begin{align*}
 l_{f,x}f+l_{g,x}g \in \Zy\\
 l_{f,y}f+l_{g,y}g \in \Zx
 \end{align*}
-Furthermore, both polynomials above are elements of $(f,g)$, so we can reduce any encryption by either one of these and achieve the desired degree reduction. However, this is no guarantee that the degrees we are able to reduce by are small.
+Furthermore, both polynomials above (we will call them \emph{resultant polynomials}) are elements of $(f,g)$. In general, these resultant polynomials will not have leading coefficients which will allow reduction of arbitrary encryptions, so we need to restrict the form of $f$ and $g$ slightly to allow this. The following proposition tells us the proper restrictions.
+
+\begin{proposition}
+Suppose the leading term of $f$ is $x^{d_1}$, and the leading term of $g$ is $y^{d_2}$ for some $d_1, d_2$. Then each resultant polynomial of $f$ and $g$ will have leading coefficient $1$.
+\end{proposition}
+\begin{proof}
+Without loss of generality, we will prove this just for the $y$-resultant polynomial (that is, the resultant polynomial in $\Zy$). Note that with the notation in the definition above, $d_1 = n$ and $d_2=m$. Consider the determinant in the definition, where we now consider the entries to be elements of $\Zy$. If the highest-degree term of $f$ is $x^{d_1}$, then all of the $a_n$ entries on the diagonal will be 1, since the leading term has coefficient $1\in \Zy$, and since the highest-degree term of $g$ is $y^{d_2}$, the entries $b_0$ will all be monic $d_2$-degree polynomials in $y$, since as a polynomial in $\Zx[y]$, $y^{d_2}$ is in the constant term of $g$. Therefore, the term in the determinant obtained by taking the product of the diagonal elements will have leading term $y^{d_1d_2}$. The other terms will have lower degree in $y$. This is because we have already chosen the entries in the bottom $n$ rows of our matrix which will give the highest $y$-degree contribution, so to increase the $y$-degree in a term, we would need to pick a non-diagonal entry in one of the first $m$ rows. However, any entry we pick will necessarily prevent us from later choosing at least one of the diagonal entries in the bottom $n$ rows, because of the positions of the zero-entries in the matrix.  since the fact that $d_1$ is the largest degree in $g$ requires 
+\end{proof}
+
+that they must include $d_1+d_2$ multiplicands, and it is impossible to 
+
+
+ we can reduce any encryption by either one of these and achieve the desired degree reduction. However, this is no guarantee that the degrees we are able to reduce by are small. Below, we show an example computed in Sage~\cite{sage}:
+\begin{verbatim}
+sage: S.<x,y>=ZZ[]
+sage: f=0
+sage: g=0
+sage: for i in range(6):
+....:     for j in range(6):
+....:         f+=floor(random()*100)*x^i*y^j
+....:         g+=floor(random()*100)*x^i*y^j
+....:         
+sage: f
+7*x^5*y^5 + 4*x^5*y^4 + 85*x^4*y^5 + 29*x^5*y^3 + 54*x^4*y^4 + 82*x^3*y^5 + 36*x^4*y^3 + 99*x^3*y^4 + 59*x^2*y^5 + 90*x^5*y + 63*x^4*y^2 + 75*x^3*y^3 + 33*x^2*y^4 + 74*x*y^5 + 47*x^5 + 87*x^4*y + 73*x^3*y^2 + 37*x^2*y^3 + 99*y^5 + 10*x^4 + 54*x^3*y + 44*x^2*y^2 + 12*x*y^3 + 39*x^3 + 82*x^2*y + 60*x*y^2 + 65*x^2 + 85*x*y + 34*y^2 + 83*x + 44*y + 10
+sage: g
+14*x^5*y^5 + 73*x^5*y^4 + 11*x^4*y^5 + 39*x^5*y^3 + 5*x^4*y^4 + 90*x^3*y^5 + 72*x^5*y^2 + 90*x^4*y^3 + 9*x^3*y^4 + 50*x^2*y^5 + 20*x^5*y + 40*x^4*y^2 + 63*x^3*y^3 + 37*x^2*y^4 + 65*x*y^5 + 90*x^5 + 78*x^4*y + 28*x^3*y^2 + 73*x^2*y^3 + 70*x*y^4 + 25*y^5 + 31*x^4 + 79*x^3*y + 2*x^2*y^2 + 89*x*y^3 + 84*y^4 + 20*x^3 + 57*x^2*y + 29*x*y^2 + 55*y^3 + 80*x^2 + 28*x*y + 93*y^2 + 42*x + 79*y + 54
+sage: f.resultant(g,x)
+-2636866510201315504*y^50 - 16351925324833684296*y^49 - 34316227546355535496*y^48 - 147248818432205112548*y^47 - 441650243343972962929*y^46 - 1219794670490622361694*y^45 - 2589888331173133492822*y^44 - 5487380377436708276069*y^43 - 9545281288941565667246*y^42 - 16161517839837001988911*y^41 - 23263482287767833510265*y^40 - 33202376114858823565703*y^39 - 40376967016303243506945*y^38 - 47706726181042402703165*y^37 - 46671409713528086777671*y^36 - 41998573975818031740797*y^35 - 23421267304684175830122*y^34 + 1484942034025089010228*y^33 + 40130665687308071195877*y^32 + 81219552628328015421140*y^31 + 127276507844084669047008*y^30 + 165710292271064761365872*y^29 + 194315828640216327647267*y^28 + 204244598156407829779589*y^27 + 195178664741875461090568*y^26 + 167439190747058832211283*y^25 + 126390565908787422031089*y^24 + 80361457267954433889815*y^23 + 38026624614156474313898*y^22 + 7348950465166370650319*y^21 - 7722962208204338736466*y^20 - 7447033465390177576069*y^19 + 4529372593542216111702*y^18 + 21971399762285387882870*y^17 + 39132225211529909424143*y^16 + 51140893119566020504699*y^15 + 56203160066650186914801*y^14 + 54633694886585070276310*y^13 + 48195350590522975948551*y^12 + 39313700653450049340571*y^11 + 29851919776367689889834*y^10 + 21307405347363685802488*y^9 + 14229859465391333379103*y^8 + 8875203428139466654855*y^7 + 5078745392301456137309*y^6 + 2627977018128766022278*y^5 + 1209868984699688058027*y^4 + 480188146906573633152*y^3 + 162397800777045094120*y^2 + 41540657283348730433*y + 8349231104311947194
+sage: f.resultant(g,y)
+774963145267233657*x^50 + 5428455990340228115*x^49 - 20104540737560291034*x^48 - 41524874511998641492*x^47 + 4926259021459862167*x^46 + 94882094144624767432*x^45 + 205950832913503686037*x^44 + 732577627071300781905*x^43 + 2015909297585381446952*x^42 + 4148534450948840224312*x^41 + 7637773927999102163266*x^40 + 14139473556583223402009*x^39 + 24666607122592192471956*x^38 + 39242403571358027277051*x^37 + 59146005367321936897437*x^36 + 86940691254078841085862*x^35 + 122690716346276837200322*x^34 + 165198867069781447361433*x^33 + 215138054264794717293475*x^32 + 273190452404576237643687*x^31 + 336482489443551563004319*x^30 + 400313020554015302920247*x^29 + 461221319455979948570834*x^28 + 516032974981948119704504*x^27 + 559757898256180256130187*x^26 + 587924105693327971269246*x^25 + 598696331807111596836030*x^24 + 591725038795332062252791*x^23 + 568329735155943538906676*x^22 + 531398026542361793523217*x^21 + 483631449932487049525834*x^20 + 428595673489982064991026*x^19 + 371476854065888152616106*x^18 + 316026471767753130136519*x^17 + 264045924965962060167180*x^16 + 217407071912679110582819*x^15 + 177615711397114662895402*x^14 + 144113561646967312918159*x^13 + 115245005533022580747822*x^12 + 89862126416004836088604*x^11 + 67780228932181107168330*x^10 + 48919343367749685657731*x^9 + 33101450560496824563268*x^8 + 20391341775017190854862*x^7 + 11110174219586702122753*x^6 + 5207404211500318759162*x^5 + 2038486788104645358303*x^4 + 642165984627330068350*x^3 + 151987540517241360360*x^2 + 23154416201604189285*x + 2072368371551197086
+
+\end{verbatim}
 
 
 \subsection{Security}
 \label{sec:mv_security}
-We now look at the security characteristics of this system. We have seen that the scheme is constructed to rely on the hardness of the Ideal Membership Problem for multivariate polynomial rings. In particular, encryptions of $m=0$ lie in $(f,g)\subset \Zxy$, so if there is a procedure to efficiently decide whether an element of $\Zxy$ is in the ideal $(f,g)$, we would be able to test whether arbitrary encryptions are encryptions of $0$. The ability to do so would be disastrous for the the security of our system; beyond simply being able to test if we are sending the message $m=0$ (which we could always avoid doing if need be), it allows us to \emph{compare} encryptions. We know that any two encryptions of a message $m\in \M$ are in the same coset of $(f,g)$, so their difference will be in the coset $\bar{0}$ (namely, it will be in $(f,g)$). Therefore, if an eavesdropper collects several plaintext/ciphertext pairs, she essentially has a table of encryptions to check any future encryptions against. For example, if our message space is small, an eavesdropper could perform a lunchtime (CITATION) attack and ask our encryption scheme to encrypt each of the possible messages, and then when she intercepts any message, she could easily determine its value based on her knowledge and ability to recognize encryptions of zero.
+We now look at the security characteristics of this system. We have seen that the scheme is constructed to rely on the hardness of the Ideal Membership Problem for multivariate polynomial rings. In particular, encryptions of $m=0$ lie in $(f,g)\subset \Zxy$, so if there is a procedure to efficiently decide whether an element of $\Zxy$ is in the ideal $(f,g)$, we would be able to test whether arbitrary encryptions are encryptions of $0$. The ability to do so would be disastrous for the the security of our system; beyond simply being able to test if we are sending the message $m=0$ (which we could always avoid doing if need be), it allows us to \emph{compare} encryptions. We know that any two encryptions of a message $m\in \M$ are in the same coset of $(f,g)$, so their difference will be in the coset $\bar{0}$ (namely, it will be in $(f,g)$). Therefore, if an eavesdropper collects several plaintext/ciphertext pairs, she essentially has a table of encryptions to check any future encryptions against. For example, if our message space is small, an eavesdropper could perform a chosen-plaintext attack and ask our encryption scheme to encrypt each of the possible messages, and then when she intercepts any message, she could easily determine its value based on her knowledge and ability to recognize encryptions of zero.
 
-One tool that helps solve the IMP in the setting of polynomial rings is the theory of \emph{Gr\"obner bases}. Given a set of generators for an ideal, a the idea of a Gr\"obner basis is to provide a set of generators for the same ideal, but which have other properties that make them ideally suited for computation. We define two separate (but similar) notions of a Gr\"obner basis below, since both appear in the literature (see, for example, CITATIONS). Note that the definitions below are given in the context of $\Zxy$, but they are applicable for polynomial rings in arbitrary numbers of variables over general rings.
+One tool that helps solve the IMP in the setting of polynomial rings is the theory of \emph{Gr\"obner bases}. Given a set of generators for an ideal, a the idea of a Gr\"obner basis is to provide a set of generators for the same ideal, but which have other properties that make them ideally suited for computation. We define two separate (but similar) notions of a Gr\"obner basis below, since both appear in the literature. Note that the definitions below are given in the context of $\Zxy$, but they are applicable for polynomial rings in arbitrary numbers of variables over general rings. We include the following two definitions to clarify our usage, as there does not seem to be a standard usage in the literature (see~\cite{becker} for example, where the following two definitions are switched):
 
-\begin{definition}[Leading monomial]
-The \emph{leading monomial} of a polynomial $f$, denoted $LM(f)$ is its leading term without coefficient.
+\begin{definition}[Monomial]
+A \emph{monomial} in the variables $x_1,\dots, x_n$ is an expression of the form $m = x_1^{d_1}\cdots x_n^{d_n}$. The degree of $m$ is then $d_1+\ldots+d_n$.
 \end{definition}
 
-\begin{definition}[Ideal of leading monomials]
-Given an ideal $I\subset \Zxy$, the ideal $LM(I)$ is defined as
-\[LM(I) = \left\langle\{LM(f) : f\in I\}\right\rangle \]
+\begin{definition}[Term]
+A \emph{term} in the variables $x_1,\dots, x_n$ is an expression of the form $t = cx_1^{d_1}\cdots x_n^{d_n}$, where $c\in \Z$ (in the case of general rings $R$, $c\in R$).
+\end{definition}
+
+\begin{definition}[Leading term]
+The \emph{leading term} of a polynomial $f$, denoted $LT(f)$, is its term with largest total degree.
+\end{definition}
+
+\begin{definition}[Ideal of leading terms]
+Given an ideal $I\subset \Zxy$, its ideal $LT(I)$ of leading terms is defined as
+\[LT(I) = \left\langle\{LT(f) : f\in I\}\right\rangle \]
 \end{definition}
 
 \begin{definition}[Strong Gr\"obner basis]
 A \emph{strong Gr\"obner basis} for the ideal $I\subset R[x,y]$ is a collection of polynomials $G=\{g_1,\dots,g_n\}$ that satisfy the following two conditions
 \begin{enumerate}
 \item $\left\langle\{g_i\}\right\rangle = I$
-\item If $f\in I$, then there exists $g\in G$ such that $LM(g) \mid LM(f)$
+\item If $f\in I$, then there exists $g\in G$ such that $LT(g) \mid LT(f)$
 \end{enumerate}
 \end{definition}
 
@@ -709,15 +747,33 @@ A \emph{strong Gr\"obner basis} for the ideal $I\subset R[x,y]$ is a collection 
 A \emph{weak Gr\"obner basis} for the ideal $I\subset R[x,y]$ is a collection of polynomials $G=\{g_1,\dots,g_n\}$ that satisfy the following two conditions
 \begin{enumerate}
 \item $\left\langle\{g_i\}\right\rangle = I$
-\item If $f\in I$, then $LM(f) \in \left\langle \left\{ LM(g) : g\in G\right\} \right\rangle$; in other words, $\left\langle \left\{ LM(g) : g\in G\right\} \right\rangle = LM(I)$
+\item If $f\in I$, then $LT(f) \in \left\langle \left\{ LT(g) : g\in G\right\} \right\rangle$; in other words, $\left\langle \left\{ LT(g) : g\in G\right\} \right\rangle = LT(I)$
 \end{enumerate}
 \end{definition}
 
-By \emph{Gr\"obner basis}, we refer generally to the notion of a \emph{strong} Gr\"obner basis, since strong Gr\"obner bases are special cases of weak Gr\"obner bases. (HOWEVER there is a dichotomy: strong GB are easier to compute, but are often larger than weak GB -- check this, CITE Prof. Stillman). It is worth noting that every ideal in $\Zxy$ does indeed have a Gr\"obner basis, which may be non-obvious (CITE BECKER 455).
+By \emph{Gr\"obner basis}, we refer generally to the notion of a \emph{strong} Gr\"obner basis. It is worth noting that there are benefits to both types of bases; since strong Gr\"obner bases have stricter divisibility conditions, they are generally larger than weak Gr\"obner bases (and therefore require more memory to store). On the other hand, strong Gr\"obner bases are easier to compute~\cite{stillman-conv}. From the definitions, strong Gr\"obner bases form a subset of weak Gr\"obner bases, so when we discuss ease of computation, we are referring to computing small weak Gr\"obner bases. Intuitively, we can imagine that this discrepancy comes from the need to discover and eliminate redundant polynomials in order to make our weak Gr\"obner basis as small as possible. It is worth noting that every ideal in $\Zxy$ does indeed have a Gr\"obner basis, which may be non-obvious~\cite{becker}. An algorithm known as the \emph{Buchberger algorithm} was among the first methods for finding Gr\"obner bases over fields, and adaptations work over the integers as well (see Tables 5.4 and 10.1 in~\cite{becker} for the original and adapted algorithms).
 
-Now, imagine an eavesdropper had access to a Gr\"obner basis for the ideal $(f,g)$ in our multivariate encryption scheme, and she has intercepted a new ciphertext. She could iterate through her table of known plaintext/ciphertext pairs, checking each ciphertext against the intercepted encryption. Each check is comprised of taking a difference between the known ciphertext and the new encryption. If the leading monomial of the resulting polynomial is not divisible by any leading monomial in the Gr\"obner basis, we already know that the difference is not an element of $(f,g)$, so the known ciphertext cannot be an encryption of the same message as the intercepted encryption. If there does exist a leading monomial in the basis dividing the leading monomial of the difference, then (CITE BECKER 465 Theorem 10.23) tells us that we can algorithmically determine whether our new encryption is in $(f,g)$. Note that this is not entirely obvious, since we know only that the leading \emph{monomial} of some element of the Gr\"obner basis divides the leading monomial of our encryption. This says nothing about the value of the leading coefficient, and since we are working over the integers rather than over a field, it is plausible that divisibility could pose a problem. However, it turns out that the properties of $\Z$ together with the knowledge of the basis are sufficient for the eavesdropper to break the scheme.
+Now, imagine an eavesdropper had access to a Gr\"obner basis for the ideal $(f,g)$ in our multivariate encryption scheme, and she has intercepted a new ciphertext. She could iterate through her table of known plaintext/ciphertext pairs, checking each ciphertext against the intercepted encryption. Each check is comprised of taking a difference between the known ciphertext and the new encryption. If the leading term of the resulting polynomial is not divisible by any leading term in the Gr\"obner basis, we already know that the difference is not an element of $(f,g)$, so the known ciphertext cannot be an encryption of the same message as the intercepted encryption. If there does exist a leading term in the basis dividing the leading term of the difference, then Theorem 10.23 in~\cite{becker} tells us that we can algorithmically determine whether our new encryption is in $(f,g)$.
 
-Using this scheme, then, relies on choosing our keys in such a way that the process of finding a Gr\"obner basis for $(f,g)$ given a list of encryptions of zero is hard (if we are looking for security against a \emph{chosen plaintext attack} CITATION, which assumes that an eavesdropper has as access to as many plaintext/ciphertext pairs as she desires). We address this question in more depth in chapter~\ref{chap:implementation} below, where we discuss the implementation of these cryptosystems and related data generation. For now, we mention that the degree of the polynomials $f$ and $g$ appears to play a large role in the complexity of the computation (as might be expected, since increasing the total degree of a two-variable polynomial increases the number of terms quadratically, and any computation becomes more time-consuming). Though we only produce data for the two-variable case, the number of variables also plays a role in this complexity (see, for example, CITE BAYER/STILLMAN SYZYGIES).
+
+Barkee et al~\cite{barkee} describe another potential threat to the security of this scheme, namely an attack which reduces the complexity of the ideal membership problem. The applicability of their threat is not explicit from their exposition, since they work entirely over a field $k$ rather than over the integers, but it is worthwhile to mention that regardless of applicability, our scheme can (with appropriate constraints) withstand it. Their attack relies on a theorem of Dickenstein et al~\cite{dickenstein}, which says that given an ideal $I=(g_1,\dots,g_l)\in k[x_1,\ldots,x_n]$, where each $g_i$ is public and of degree less than or equal to some integer $d$, and an element $h=M+\sum_{i=1}^lp_ig_i$ for $M=h\mod I$ and some $p_i$ of degree less than or equal to some $r\in\Z$, then we can reduce $h$ to find $M$ by using only the polynomials output by a simplified version of the Buchberger algorithm mentioned above. Namely, the original algorithm tests each \emph{pair} of polynomials in the input collection $\{g_i\}$ to see if a certain reduction of a combination of this pair should be included in our Gr\"obner basis, but the simplification allows us to ignore each pair $(g_i,g_j)$ such that
+\[\deg(g_i,g_j) := \max\left\{\deg\left(\frac{\text{lcm}(LM(g_i),LM(g_j))}{LM(g_i)}g_i\right),
+\deg\left(\frac{\text{lcm}(LM(g_i),LM(g_j))}{LM(g_j)}g_j\right)\right\}  > d+r\]
+In the context of our scheme, we can consider the $g_i$ here to be encryptions $e_i(0)$ of zero which generate $(f,g)$, which for the purposes of security analysis we can consider to be public. We use subscripts in $e_i(0)$ to denote different encryptions rather than different encryption functions. The $h$ above is then an arbitrary encryption $e(m)$, and the $p_i$ are the polynomials necessary to express $h$ as
+\[h = e(m) = m+\sum_{i=1}^l p_ie_i(0) \]
+The theorem then tells us that in order to reduce $h$ modulo $(f,g)$, which would recover $m$ in our scheme, it is only necessary to run the Buchberger algorithm on the pairs of polynomials $(e_i(0),e_j(0))$ such that $\deg(e_i(0),e_j(0))$ is less than or equal to the degree of the maximal-degree encryption plus the degree of the maximal-degree $p_i$. If we can show that all pairs satisfy this constraint, then the complexity of the Buchberger algorithm will not have been reduced (note that the Buchberger algorithm is not the fastest Gr\"obner basis computation algorithm, so reducing our problem to the complexity of the Buchberger algorithm does not help an eavesdropper). However, we can ensure that this is the case by the construction of our algorithm. For example, in our key generation step we can ensure that the random polynomials $a_i$ and $b_i$ are chosen such that the leading monomials of all encryptions are the same, then
+\begin{align*}
+\deg(g_i,g_j) &= \max\left\{\deg\left(\frac{\text{lcm}(LM(e_i(0)),LM(e_j(0)))}{LM(e_i(0))}e_i(0)\right),
+\deg\left(\frac{\text{lcm}(LM(e_i(0)),LM(e_j(0)))}{LM(e_j(0))}e_j(0)\right)\right\} \\
+\\
+&= \max\left\{\deg\left(\frac{LM(e_i(0))}{LM(e_i(0))}e_i(0)\right),
+\deg\left(\frac{LM(e_j(0))}{LM(e_j(0))}e_j(0)\right)\right\} \\ \\
+&= \deg(e_i(0)) = \deg(e_j(0))
+\end{align*}
+and since all encryptions have the same leading monomial, they all have the same degree $d$, and $\deg(e_i(0)) = d \leq d+r$ from above, and we cannot eliminate any pairs of encryptions from our execution of the Buchberger algorithm. Making the leading monomials of all encryptions the same should not tell us any additional information about $f$ and $g$, since it is the $a_i$ and $b_i$ which create these equal degrees. and we could also generalize this approach to allow $a_i$ and $b_i$ that make all of our encryptions have the same $x$-degree. In this case, the least common multiple of the leading monomials of each pair of encryptions would be one of the encryptions back again, so $\deg(e_i(0),e_j(0))$ would be exactly $\max\{\deg(e_i(0)),\deg(e_j(0))\} \leq d$, where $d$ again is the upper bound on the degrees of the encryptions we are considering. In light of these possibilities, we will consider our scheme to rely on the hardness of Gr\"obner basis computation.
+
+
+Using this scheme, then, relies on choosing our keys in such a way that the process of finding a Gr\"obner basis for $(f,g)$ given a list of encryptions of zero is hard (for security against a \emph{chosen plaintext attack}, which assumes that an eavesdropper has as access to as many plaintext/ciphertext pairs as she desires~\cite{hoff-piph-silv}). We address this question in more depth in chapter~\ref{chap:implementation} below, where we discuss the implementation of these cryptosystems and related data generation. For now, we mention that the degree of the polynomials $f$ and $g$ appears to play a large role in the complexity of the computation (as might be expected, since increasing the total degree of a two-variable polynomial increases the number of terms quadratically, and any computation becomes more time-consuming). Though we only produce data for the two-variable case, the number of variables also plays a role in this complexity (see, for example, ~\cite{bayer-stillman}).
 
 
 \subsection{Generalizing}
@@ -735,16 +791,16 @@ The proof of the correctness of encryption and decryption is identical to that p
 
 When we increase the number of variables in our scheme, we also lose efficiency, since general polynomials in more variables of the same total degree contain a greater number of terms. This becomes a significant problem when we consider multiplying ciphertexts. For this reason, it may not be practical to consider using many variables, but the possibility is there.
 
-It is worth noting that if we attempted to generalize schemes such as those presented in (CITE PCR pages 12, 23), the efficiency of the decryption step would rely on reducing modulo a basis in many variables. Our scheme avoids such messy computations by allowing decryption via simple evaluations and reduction by a single-variable polynomial.
+It is worth noting that if we attempted to generalize schemes such as those presented on pages 12 and 23 of ~\cite{polly-cracker-revisited}, the efficiency of the decryption step would rely on reducing modulo a basis in many variables. Our scheme avoids such messy computations by allowing decryption via simple evaluations and reduction by a single-variable polynomial.
 
 
 %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%
 \chapter{Implementation and Results}
 \label{chap:implementation}
-In this chapter, we explain our implementation of the two encryption schemes presented above. We implement both in C++ to take advantage of the efficiency of a compiled language and the flexibility and power of an object-oriented language. In particular, classes are used to model polynomials and vectors. Furthermore, we require manipulation of integers of arbitrary size. For this purpose, we use the GNU Multiple Precision Arithmetic Library (GMP) [CITE]. The files referred to in the sections below can be found at https://github.com/bleveque/HomEnc.
+In this chapter, we explain our implementation of the two encryption schemes presented above. We implement both in C++ to take advantage of the efficiency of a compiled language and the flexibility and power of an object-oriented language. In particular, classes are used to model polynomials and vectors. Furthermore, we require manipulation of integers of arbitrary size. For this purpose, we use the GNU Multiple Precision Arithmetic Library (GMP)~\cite{gmp-manual}. The files referred to in the sections below can be found at https://github.com/bleveque/HomEnc.
 
-Beyond theoretical formulation, it is important to see how these schemes might perform in practice. As such, we include runtime results and some preliminary tests of Gr\"obner basis computation times using the computer algebra systems Macaulay2 and Maple (in particular, Jean-Charles Faug\`ere's Gr\"obner basis package FGb, which is available through Maple).
+Beyond theoretical formulation, it is important to see how these schemes might perform in practice. As such, we include runtime results and some preliminary tests of Gr\"obner basis computation times using the computer algebra systems Macaulay2 ~\cite{M2} and Maple (in particular, Jean-Charles Faug\`ere's Gr\"obner basis package FGb~\cite{faugere-fgb}, which is available through Maple).
 
 \section{Code design}
 \subsubsection{Choice-based scheme implementation}
@@ -755,7 +811,7 @@ Our implementation of the Chinese Remainder Theorem is straightforward, since we
 
 
 \subsubsection{Multivariate scheme implementation}
-Following the implementation of multivariate polynomials in [CITE KNUTH], we use linked lists to model multivariate polynomials. Each node in a list has three components: a coefficient (again represented using GMP), an $x$-degree, and a $y$-degree. This approach has several benefits over using standard arrays. Most importantly, if the polynomials in question are of large degree (say $n$) but are very sparse (say with only $t$ non-zero terms), using standard arrays will necessitate $\bigO(n^2)$ storage to accommodate each of the possible terms, while the linked list will only require $\bigO(t)$ memory. Additionally, it is very straightforward to add and multiply using this construction, provided we have a well-formulated algorithm for adding nodes to our list. This insertion algorithm is outlined below:
+Following the implementation of multivariate polynomials in~\cite{knuth-vol1}, we use linked lists in \emph{llist.h} and \emph{llist.cpp} to model multivariate polynomials. Each node in a list has three components: a coefficient (again represented using GMP), an $x$-degree, and a $y$-degree. This approach has several benefits over using standard arrays. Most importantly, if the polynomials in question are of large degree (say $n$) but are very sparse (say with only $t$ non-zero terms), using standard arrays will necessitate $\bigO(n^2)$ storage to accommodate each of the possible terms, while the linked list will only require $\bigO(t)$ memory. Additionally, it is very straightforward to add and multiply using this construction, provided we have a well-formulated algorithm for adding nodes to our list. This insertion algorithm is outlined below:
 
 \begin{verbatim}
  1: insert(list, node):
@@ -780,8 +836,14 @@ Finally, we implement reduction in $\Zx$ by using polynomial long division. Redu
 \subsection{Running times}
 
 
-\subsection{Gr\"obner bases}
-The main tool that could be used to break our multivariate encryption scheme above is the theory of \emph{Gr\"obner bases}. We defined the notion in section~\ref{sec:mv_security}, and now we give some intuition about their effectiveness in computation. Suppose we have a Gr\"obner basis for the ideal $(f,g) \in \Zxy$ at our disposal. 
+\subsection{Gr\"obner basis computation times}
+The main tool that could be used to break our multivariate encryption scheme above is the theory of \emph{Gr\"obner bases}. We defined and discussed this notion in section~\ref{sec:mv_security}, and here we give some sample results for current Gr\"obner basis generation software using a variety of parameters. We use Jean-Charles Faug\`ere's FGb package through Maple and the Macaulay2 function \verb|gb|. In Macaulay2, we generate Gr\"obner bases over both the integers and $\Zp$ for several choices of $p$. The results were generated using the scripts \emph{grob.sh} (calling Macaulay2 over the integers), \emph{ZpGrob.sh} (calling Macaulay2 over $\Zp$), and \emph{MapleScript.sh} (calling FGb over the integers). We did \emph{not} verify the correctness of the bases output by these methods. The calls to FGb sometimes resulted in errors, and we have done our best to remove the corresponding runtimes manually from the resulting data, since an error causes the function to return relatively quickly with the incorrect result. More complete results may be found on the website accompanying this thesis (located at WEBSITE URL).
+
+\begin{center}
+\begin{tabular}{| l | l | l | l |}
+h & e & l & l \\
+\end{tabular}
+\end{center}
 
 \section{Application to medical needs}
 
@@ -874,7 +936,7 @@ acknowledge Prof. Stillman for helpful conversation
 
 \
 
-Idea: get f.resultant(g,x) and f.resultant(g,y) to reduce encryptions by!~\cite{gentry-thesis}
+Idea: get f.resultant(g,x) and f.resultant(g,y) to reduce encryptions by!~\cite{gentry-thesis} hi~\cite{becker}
 
 
 \bibliography{biblio}{}
