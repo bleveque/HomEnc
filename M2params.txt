@@ -1,3 +1,0 @@
-totalDegree=6
-sizeCoeffs=1024
-numPolysGiven=4
