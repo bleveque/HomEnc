@@ -538,18 +538,18 @@ void grob_gens(int deg, bigint log_coeff_size, int num_gens)
 void time_cbe(void)
 {
     ofstream file;
-    file.open("./cbe_times.txt", ios::out | ios::app);
+    file.open("./cbe_times_with_circuits.txt", ios::out | ios::app);
     int Plog, N;
     bigint P, M, K, iter;
     bigint coeff;
-    for(Plog=1;Plog<=40;Plog+=5)
+    for(Plog=10;Plog<=40;Plog+=20)
     {
         P=NEXTPRIME(POW(2,Plog));
-        for(M=0;M<=40;M+=5)
+        for(N=256;N<=512;N+=256)
         {
-            for(K=5;K<=40;K+=5)
+            for(K=10;K<=40;K+=20)
             {
-                for(N=512;N<=1024;N+=512)
+                for(M=0;M<=40;M+=20)
                 {
                     for(iter=1;iter<=5;iter++)
                     {
@@ -560,11 +560,17 @@ void time_cbe(void)
                     
                         bigint m(RAND(P));
                         vec enc(CBE_ENCRYPT(m,p,q,P,K));
-                    
+                        vec orig_enc(enc);
+                        for(int j=1;j<=M;j++)
+                        {
+                            enc=COMPWISEPROD(enc,orig_enc);
+                        }
                         bigint dec(CBE_DECRYPT(enc,p,P));
                         t=clock()-t;
-                        assert(m==dec);
-                        cout << "P = " << P << ", M = " << M << ", K = " << K << ", N = " << N << ", iteration = " << iter << ", time = " << (((float) t)/CLOCKS_PER_SEC) << "\n";
+                        bigint check(MOD(POW(m,M+1),P));
+                        cout << "dec " << dec << " == " << check << " check? " << ((dec==check)?"yes":"no") << ":\n";
+                        assert(MOD(POW(m,M+1),P)==dec);
+                        cout << "  P = " << P << ", M = " << M << ", K = " << K << ", N = " << N << ", iteration = " << iter << ", time = " << (((float) t)/CLOCKS_PER_SEC) << "\n";
                         if(file.is_open())
                         {
                             file << P << "|" << M << "|" << K << "|" << N << "|" << (((float) t)/CLOCKS_PER_SEC) << "|\n";
@@ -580,30 +586,40 @@ void time_cbe(void)
 void time_me(void)
 {
     ofstream file;
-    file.open("./me_times.txt", ios::out | ios::app);
-    int deg, logcoeff, k;
+    file.open("./me_times_with_circuits.txt", ios::out | ios::app);
+    int deg, logcoeff, k, M;
     bigint coeff;
-    for(deg=2;deg<=40;deg++)
+    for(deg=2;deg<=16;deg+=8)
     {
-        for(logcoeff=2;logcoeff<=20;logcoeff++)
+        for(logcoeff=2;logcoeff<=16;logcoeff+=8)
         {
-            coeff=POW(2,logcoeff);
-            for(k=1;k<=5;k++)
+            for(M=0;M<=8;M+=4)
             {
-                clock_t t;
-                t=clock();
-                llist f, g;
-                bigint z0;
-                MULTICRYPT_KEYGEN(f, g, z0, deg, coeff);
-                bigint m1(RAND(100000));
-                llist enc1(MULTICRYPT_ENCRYPT(m1,f,g,deg,coeff));
-                bigint dec(MULTICRYPT_DECRYPT(enc1,f,g,z0));
-                t=clock()-t;
-                assert(m1==dec);
-                cout << "deg = " << deg << ", coeff = " << coeff << ", iteration = " << k << ", time = " << (((float) t)/CLOCKS_PER_SEC) << "\n";
-                if(file.is_open())
+                coeff=POW(2,logcoeff);
+                for(k=1;k<=5;k++)
                 {
-                    file << deg << "|" << coeff << "|" << (((float) t)/CLOCKS_PER_SEC) << "|\n";
+                    clock_t t;
+                    t=clock();
+                    llist f, g;
+                    bigint z0;
+                    MULTICRYPT_KEYGEN(f, g, z0, deg, coeff);
+                    bigint m1(RAND(100000));
+                    llist enc1(MULTICRYPT_ENCRYPT(m1,f,g,deg,coeff));
+                    llist orig_enc(enc1);
+                    for(int j=1;j<=M;j++)
+                    {
+                        enc1=enc1*orig_enc;
+                    }
+                    bigint dec(MULTICRYPT_DECRYPT(enc1,f,g,z0));
+                    t=clock()-t;
+                    bigint check(POW(m1,M+1));
+                    cout << "dec " << dec << " == " << check << " check? " << ((dec==check)?"yes":"no") << ":\n";
+                    assert(check==dec);
+                    cout << "  deg = " << deg << ", coeff = " << coeff << ", M = " << M << ", iteration = " << k << ", time = " << (((float) t)/CLOCKS_PER_SEC) << "\n";
+                    if(file.is_open())
+                    {
+                        file << deg << "|" << coeff << "|" << M << "|" << (((float) t)/CLOCKS_PER_SEC) << "|\n";
+                    }
                 }
             }
         }

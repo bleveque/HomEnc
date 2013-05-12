@@ -26,9 +26,9 @@
 
 
 make
-for ((i=3;i<=5;i+=1));do             # degree of f,g
-	for ((j=3;j<=10;j+=1));do        # log-size of the coefficients of f,g
-		for ((k=2;k<=10;k+=1));do    # number of polynomials fed to the gb function
+for ((i=6;i<=6;i+=1));do             # degree of f,g
+	for ((j=10;j<=10;j+=1));do        # log-size of the coefficients of f,g
+		for ((k=4;k<=4;k+=1));do    # number of polynomials fed to the gb function
 			for ((l=0;l<5;l++));do   # five iterations to get a decent average
 				echo degree=$i, log-size=$j, numpolys=$k, iteration=$l
 				./enc grob $i $j $k
