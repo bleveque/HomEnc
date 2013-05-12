@@ -1,4 +1,4 @@
-HomEnc
+Homomorphic encryption project
 ======
 results.txt stores data in the following format:
 
